@@ -355,8 +355,8 @@ public class RunIntegrationTests
         final int assumedConsoleWidth = 150;
         formatter.setWidth(assumedConsoleWidth);
         formatter.printHelp("java -jar logtest-buildserver-app.jar [OPTIONS]... [EXECUTIONS]...\n"
-            + "An EXECUTION is a triple <scenario-filename>:<automaton-filename>[:<comma separated key=value pairs...>,<...>] e.g. "
-            + "runFor120Minutes-trace.txt:checkEverythingShutsDownProperly.json:size=50,stop=yes",
+            + "An EXECUTION is a triple <scenario-filename>:<automaton-filename>[:<parameters, comma separated key=value pairs...>,<...>]"
+            + " e.g. runFor120Minutes-trace.txt:checkEverythingShutsDownProperly.json:size=50,stop=yes",
             options);
     }
 
