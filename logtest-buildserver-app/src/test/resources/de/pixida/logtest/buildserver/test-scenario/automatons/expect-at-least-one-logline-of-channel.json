@@ -1,0 +1,22 @@
+{
+	'nodes':
+	[
+		{
+			'id': 'waiting for log line',
+			'initial': true,
+			'outgoingEdges':
+			[
+				{
+					'id': 'some log line',
+					'destination': 'log line spotted',
+					'channel': 'C',
+					'triggerAlways': true
+				}
+			]
+		},
+		{
+			'id': 'log line spotted',
+			'success': true
+		}
+	]
+}

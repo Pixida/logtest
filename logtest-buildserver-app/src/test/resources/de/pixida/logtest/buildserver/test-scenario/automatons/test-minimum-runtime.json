@@ -1,0 +1,21 @@
+{
+	'nodes':
+	[
+		{
+			'id': 'waiting',
+			'initial': true,
+			'outgoingEdges':
+			[
+				{
+					'id': 'timeout',
+					'destination': 'minimum runtime reached',
+					'timeIntervalSinceLastMicrotransition': '${minimumRuntimeMs}'
+				}
+			]
+		},
+		{
+			'id': 'minimum runtime reached',
+			'success': true
+		}
+	]
+}

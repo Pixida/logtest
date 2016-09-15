@@ -1,0 +1,21 @@
+{
+	'nodes':
+	[
+		{
+			'id': 'start',
+			'initial': true,
+			'outgoingEdges':
+			[
+				{
+					'id': 'changing address',
+					'destination': 'address changed',
+					'regExp': 'NetworkAddressChange done'
+				}
+			]
+		},
+		{
+			'id': 'address changed',
+			'success': true
+		}
+	]
+}

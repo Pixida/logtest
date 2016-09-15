@@ -1,0 +1,8 @@
+D 0 System startup
+I 5 System startup completed
+D 14 Initializing Drivers
+D 50 NET OK
+D 70 LOGGING OK
+I 1000 Drivers initialized
+I 30000 System shutdown requested
+I 31000 Shutdown complete

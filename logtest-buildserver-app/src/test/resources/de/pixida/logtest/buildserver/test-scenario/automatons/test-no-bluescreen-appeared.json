@@ -1,0 +1,22 @@
+{
+	'nodes':
+	[
+		{
+			'id': 'ok',
+			'initial': true,
+			'success': true,
+			'outgoingEdges':
+			[
+				{
+					'id': 'command',
+					'destination': 'error',
+					'regExp': 'Bluescreen'
+				}
+			]
+		},
+		{
+			'id': 'error',
+			'failure': true
+		}
+	]
+}
