@@ -1,2 +1,2 @@
 # logtest
-Running automatic tests on log files using finite automatons.
+A toolset for running finite automatons on log files for module and integration testing.
