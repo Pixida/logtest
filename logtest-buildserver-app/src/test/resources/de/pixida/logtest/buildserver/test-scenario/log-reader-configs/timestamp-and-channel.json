@@ -1,0 +1,5 @@
+{
+	'headlinePattern': '(.*?([0-9]+) (C))',
+	'headlinePatternIndexOfTimestamp': 2,
+	'headlinePatternIndexOfChannel': 3
+}
