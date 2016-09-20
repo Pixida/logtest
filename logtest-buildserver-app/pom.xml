@@ -11,7 +11,7 @@
 	<parent>
 		<groupId>de.pixida.logtest</groupId>
 		<artifactId>logtest</artifactId>
-		<version>1.0.0</version>
+		<version>1.0.1</version>
 	</parent>
 	
 	<dependencies>

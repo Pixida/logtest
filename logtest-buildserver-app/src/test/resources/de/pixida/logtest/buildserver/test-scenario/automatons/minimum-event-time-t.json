@@ -1,0 +1,21 @@
+{
+	'nodes':
+	[
+		{
+			'id': 'waiting',
+			'initial': true,
+			'outgoingEdges':
+			[
+				{
+					'id': 'timeout',
+					'destination': 'minimum event time reached',
+					'timeIntervalForEvent': '${t}'
+				}
+			]
+		},
+		{
+			'id': 'minimum event time reached',
+			'success': true
+		}
+	]
+}

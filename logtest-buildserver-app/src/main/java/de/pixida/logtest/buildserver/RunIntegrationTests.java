@@ -8,6 +8,8 @@
 package de.pixida.logtest.buildserver;
 
 import java.io.File;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -21,6 +23,7 @@ import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.time.StopWatch;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.log4j.Level;
@@ -47,6 +50,8 @@ public class RunIntegrationTests
     private static final String VERBOSITY_SWITCH = "verbose";
     private static final String REPORT_SWITCH = "reportFile";
     private static final String LOG_READER_CONFIG_SWITCH = "logReaderConfig";
+    private static final String LOG_READER_CONFIG_FILE_SWITCH = "logReaderConfigFile";
+    private static final String DEFAULT_PARAMETER_FILE_SWITCH = "defaultParameterFile";
     private static final String HELP_SWITCH = "help";
 
     private static final Logger LOG = LoggerFactory.getLogger(RunIntegrationTests.class);
@@ -74,6 +79,8 @@ public class RunIntegrationTests
     private final StopWatch stopWatch = new StopWatch();
     private List<Long> jobExecutionTimesMs;
     private JSONObject logReaderConfigFromCommandLine;
+    private JSONObject logReaderConfigFromFile;
+    private final Map<String, String> defaultParameters = new HashMap<>();
 
     public RunIntegrationTests()
     {
@@ -116,9 +123,19 @@ public class RunIntegrationTests
                 printHelp(options);
                 return false;
             }
+
             this.applyVerbositySwitch(params);
-            this.configuredExecutions = groupAutomatonsByTraceFile(params);
+
+            this.loadDefaultParameters(params);
+
+            this.configuredExecutions = this.groupAutomatonsByTraceFile(params);
+
             final String param = params.getOptionValue(REPORT_SWITCH);
+            if (param != null)
+            {
+                this.jUnitReportTarget = new File(param);
+            }
+
             try
             {
                 if (params.hasOption(LOG_READER_CONFIG_SWITCH))
@@ -128,11 +145,32 @@ public class RunIntegrationTests
             }
             catch (final JSONException jsonEx)
             {
-                throw new ParseException("Failed to parse log reader configuration JSON data: " + jsonEx.getMessage());
+                throw new ParseException("Failed to parse log reader configuration JSON data from command line: " + jsonEx.getMessage());
             }
-            if (param != null)
+
+            File logReaderConfigurationFile = null;
+            try
             {
-                this.jUnitReportTarget = new File(param);
+                if (params.hasOption(LOG_READER_CONFIG_FILE_SWITCH))
+                {
+                    logReaderConfigurationFile = new File(params.getOptionValue(LOG_READER_CONFIG_FILE_SWITCH));
+                    this.logReaderConfigFromFile = new JSONObject(
+                        IOUtils.toString(logReaderConfigurationFile.toURI(), StandardCharsets.UTF_8));
+                    LOG.debug("Using log reader configuration file '{}'", logReaderConfigurationFile.getCanonicalPath());
+                }
+                else
+                {
+                    LOG.debug("No log reader configuration file set.");
+                }
+            }
+            catch (final JSONException jsonEx)
+            {
+                throw new ParseException("Failed to parse log reader configuration JSON data from file: " + jsonEx.getMessage());
+            }
+            catch (final IOException e)
+            {
+                throw new ParseException("Failed to read log reader configuration file '" + logReaderConfigurationFile.getAbsolutePath()
+                    + "': " + e.getMessage());
             }
         }
         catch (final ParseException e)
@@ -183,6 +221,40 @@ public class RunIntegrationTests
         if (numFailedExecutions == 1)
         {
             throw new ExitWithFailureException();
+        }
+    }
+
+    private void loadDefaultParameters(final CommandLine params) throws ParseException
+    {
+        File defaultParameterFile = null;
+        try
+        {
+            if (params.hasOption(DEFAULT_PARAMETER_FILE_SWITCH))
+            {
+                defaultParameterFile = new File(params.getOptionValue(DEFAULT_PARAMETER_FILE_SWITCH));
+                final JSONObject root = new JSONObject(IOUtils.toString(defaultParameterFile.toURI(), StandardCharsets.UTF_8));
+                for (final String k : root.keySet())
+                {
+                    final String v = root.getString(k);
+                    this.defaultParameters.put(k, v);
+                }
+                LOG.debug("Loaded '{}' default parameters from file '{}'", this.defaultParameters.size(),
+                    defaultParameterFile.getCanonicalPath());
+                LOG.trace("Using default parameters: {}", this.defaultParameters);
+            }
+            else
+            {
+                LOG.debug("No default parameters set.");
+            }
+        }
+        catch (final JSONException jsonEx)
+        {
+            throw new ParseException("Failed to parse default parameter JSON data from file: " + jsonEx.getMessage());
+        }
+        catch (final IOException e)
+        {
+            throw new ParseException(
+                "Failed to read default parameter file '" + defaultParameterFile.getAbsolutePath() + "': " + e.getMessage());
         }
     }
 
@@ -252,13 +324,27 @@ public class RunIntegrationTests
             .hasArg()
             .argName("json-object")
             .build();
+        final Option logReaderConfigFileSwitch = Option.builder("lrcfgf")
+            .longOpt(LOG_READER_CONFIG_FILE_SWITCH)
+            .desc("Log reader configuration file")
+            .hasArg()
+            .argName("file")
+            .build();
+        final Option defaultParameterFileSwitch = Option.builder("dpf")
+            .longOpt(DEFAULT_PARAMETER_FILE_SWITCH)
+            .desc("Default parameter file")
+            .hasArg()
+            .argName("file")
+            .build();
         final Option helpSwitch = Option.builder("h")
             .longOpt(HELP_SWITCH)
-            .desc("Show (this) help")
+            .desc("Show (this) help only")
             .build();
         options.addOption(traceLogDirectory);
         options.addOption(automatonDirectory);
         options.addOption(logReaderConfigSwitch);
+        options.addOption(logReaderConfigFileSwitch);
+        options.addOption(defaultParameterFileSwitch);
         options.addOption(reportFile);
         options.addOption(verbosity);
         options.addOption(helpSwitch);
@@ -268,20 +354,27 @@ public class RunIntegrationTests
     private ILogReader createAndConfigureLogReader(final File logFile)
     {
         final GenericLogReader logReader = new GenericLogReader(logFile);
+
+        // Define default settings here for now
+        logReader.setHeadlinePattern("^(.*?([0-9]+))");
+        logReader.setHeadlinePatternIndexOfTimestamp(1 + 1);
+
+        // Settings from configuration file
+        if (this.logReaderConfigFromFile != null)
+        {
+            logReader.overwriteCurrentSettingsWithSettingsInConfigurationFile(this.logReaderConfigFromFile);
+        }
+
+        // Settings from command line
         if (this.logReaderConfigFromCommandLine != null)
         {
             logReader.overwriteCurrentSettingsWithSettingsInConfigurationFile(this.logReaderConfigFromCommandLine);
         }
-        else
-        {
-            // Define default settings here for now
-            logReader.setHeadlinePattern("^(.*?([0-9]+))");
-            logReader.setHeadlinePatternIndexOfTimestamp(1 + 1);
-        }
+
         return logReader;
     }
 
-    private static Map<File, List<Pair<File, Map<String, String>>>> groupAutomatonsByTraceFile(final CommandLine params)
+    private Map<File, List<Pair<File, Map<String, String>>>> groupAutomatonsByTraceFile(final CommandLine params)
         throws ParseException
     {
         final File logFolder = new File(commandLineParamOrCurrentDirectory(params, TRACE_LOG_DIRECTORY_SWITCH));
@@ -310,11 +403,11 @@ public class RunIntegrationTests
             Map<String, String> parameters = null;
             if (components.length >= numComponentsLogFileAndAutomatonAndParameter)
             {
-                parameters = parseAutomatonParameters(components[numComponentsLogFileAndAutomatonAndParameter - 1]);
+                parameters = this.parseAutomatonParameters(components[numComponentsLogFileAndAutomatonAndParameter - 1]);
             }
             if (parameters == null)
             {
-                parameters = new HashMap<>();
+                parameters = this.parseAutomatonParameters("");
             }
 
             automatons.add(Pair.of(new File(automatonsFolder, components[1]), parameters));
@@ -327,23 +420,29 @@ public class RunIntegrationTests
         return params.hasOption(paramName) ? params.getOptionValue(paramName) : ".";
     }
 
-    private static Map<String, String> parseAutomatonParameters(final String string) throws ParseException
+    private Map<String, String> parseAutomatonParameters(final String string) throws ParseException
     {
         final Map<String, String> result = new HashMap<>();
 
-        // Separate by ','
-        final String[] params = string.split(",");
+        // Add default parameters
+        result.putAll(this.defaultParameters);
 
-        // Separate by '='
-        for (final String param : params)
+        if (string.length() > 0)
         {
-            final String[] kv = param.split("=");
-            final int kvLen = 2;
-            if (kv.length != kvLen)
+            // Separate by ','
+            final String[] params = string.split(",");
+
+            // Separate by '='
+            for (final String param : params)
             {
-                throw new ParseException("A parameter entry must be a key=value pair.");
+                final int kvLen = 2;
+                final String[] kv = param.split("=", kvLen);
+                if (kv.length != kvLen)
+                {
+                    throw new ParseException("A parameter entry must be a key=value pair.");
+                }
+                result.put(kv[0], kv[1]);
             }
-            result.put(kv[0], kv[1]);
         }
 
         return result;
@@ -356,7 +455,7 @@ public class RunIntegrationTests
         formatter.setWidth(assumedConsoleWidth);
         formatter.printHelp("java -jar logtest-buildserver-app.jar [OPTIONS]... [EXECUTIONS]...\n"
             + "An EXECUTION is a triple <scenario-filename>:<automaton-filename>[:<parameters, comma separated key=value pairs...>,<...>]"
-            + " e.g. runFor120Minutes-trace.txt:checkEverythingShutsDownProperly.json:size=50,stop=yes",
+            + " e.g. tracelog.txt:checkSystemStartupSucceeds.json:timeout=30,waitForNetIO=yes",
             options);
     }
 

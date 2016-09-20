@@ -15,6 +15,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.junit.Assert;
 import org.junit.Rule;
@@ -48,7 +49,7 @@ public class RunIntegrationTestsTest
         this.checkCommandLineParsingFails(new String[] {"-a", "a", "-t", "t", "t:a:b++"});
         new RunIntegrationTests().parseCommandLine(new String[] {"-a", "a", "-t", "t", "t:a:b=1"});
         this.checkCommandLineParsingFails(new String[] {"-a", "a", "-t", "t", "t:a:b=1, "});
-        this.checkCommandLineParsingFails(new String[] {"-a", "a", "-t", "t", "t:a:"});
+        new RunIntegrationTests().parseCommandLine(new String[] {"-a", "a", "-t", "t", "t:a:"});
         new RunIntegrationTests().parseCommandLine(new String[] {"-a", "a", "-t", "t", "t:a:b=1,c=5"});
     }
 
@@ -161,7 +162,7 @@ public class RunIntegrationTestsTest
     }
 
     @Test
-    public void testLogReaderConfigCanBeSet()
+    public void testLogReaderConfigCanBeSetOnCommandLine()
     {
         final String automatonsPath = this.getTestScenarioPath("test-scenario/automatons");
         final String tracesPath = this.getTestScenarioPath("test-scenario/traces");
@@ -173,6 +174,52 @@ public class RunIntegrationTestsTest
                                 + "'headlinePatternIndexOfTimestamp':2,"
                                 + "'headlinePatternIndexOfChannel':3 }",
                             "one-line-channel-c.txt:expect-at-least-one-logline-of-channel.json"});
+        r.createAndRunJobs();
+        r.printResults();
+    }
+
+    @Test
+    public void testLogReaderConfigCanBeSetViaConfigurationFile()
+    {
+        final String automatonsPath = this.getTestScenarioPath("test-scenario/automatons");
+        final String tracesPath = this.getTestScenarioPath("test-scenario/traces");
+        final String logReaderConfigsPath = this.getTestScenarioPath("test-scenario/log-reader-configs");
+        final RunIntegrationTests r = new RunIntegrationTests();
+        r.parseCommandLine(
+            new String[] {"-a", automatonsPath, "-t", tracesPath,
+                            "-lrcfgf", logReaderConfigsPath + "/timestamp-and-channel.json",
+                            "one-line-channel-c.txt:expect-at-least-one-logline-of-channel.json"});
+        r.createAndRunJobs();
+        r.printResults();
+    }
+
+    @Test
+    public void testDefaultParametersAreApplied()
+    {
+        final String automatonsPath = this.getTestScenarioPath("test-scenario/automatons");
+        final String tracesPath = this.getTestScenarioPath("test-scenario/traces");
+        final String defaultParamsPath = this.getTestScenarioPath("test-scenario/default-parameters");
+        String[] cmdLineParams = new String[] {"-a", automatonsPath, "-t", tracesPath, "some-event-with-5ms.txt:minimum-event-time-t.json"};
+
+        try
+        {
+            this.runCommandLine(cmdLineParams);
+            Assert.fail("Expecting exception due to undefined parameter");
+        }
+        catch (final ExitWithFailureException ewfe)
+        {
+            // OK
+        }
+
+        cmdLineParams = ArrayUtils.add(cmdLineParams, "-dpf");
+        cmdLineParams = ArrayUtils.add(cmdLineParams, defaultParamsPath + "/t-is-5.json");
+        this.runCommandLine(cmdLineParams);
+    }
+
+    private void runCommandLine(final String[] cmdLineParams)
+    {
+        final RunIntegrationTests r = new RunIntegrationTests();
+        r.parseCommandLine(cmdLineParams);
         r.createAndRunJobs();
         r.printResults();
     }
