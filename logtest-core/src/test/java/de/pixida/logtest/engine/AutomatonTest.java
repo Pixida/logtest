@@ -402,16 +402,19 @@ public class AutomatonTest
         final TestAutomaton ta = new TestAutomaton().withOnLoad("str = 'A'");
 
         final GenericNode initial = ta.createNode()
-            .withFlags(EnumSet.of(INodeDefinition.Flag.IS_INITIAL, INodeDefinition.Flag.IS_SUCCESS))
+            .withFlags(EnumSet.of(INodeDefinition.Flag.IS_INITIAL))
             .withOnEnter("str += 'B'").withOnLeave("str += 'C'").get();
         final GenericNode other = ta.createNode().withOnEnter("str += 'E'").get();
+        final GenericNode finish = ta.createNode().withFlags(EnumSet.of(INodeDefinition.Flag.IS_SUCCESS)).get();
         ta.createEdge(initial, other).withTriggerAlways().withOnWalk("str += 'D'");
-        ta.createEdge(other, initial).withCheckExp("str == 'ABCDE'");
+        ta.createEdge(other, finish).withCheckExp("str == 'ABCDE'");
 
         final Automaton a = this.createAutomaton(ta);
 
         a.proceedWithLogEntry(new GenericLogEntry(1, 0, "peek"));
-        this.checkSuccess(a);
+        Assert.assertFalse(a.canProceed());
+        Assert.assertFalse(a.automatonDefect());
+        Assert.assertTrue(a.succeeded());
     }
 
     @Test
@@ -419,15 +422,14 @@ public class AutomatonTest
     {
         final TestAutomaton ta = new TestAutomaton().withOnLoad("engine.halt('Halting in onLoad handler')");
 
-        final GenericNode initial = ta.createNode()
-            .withFlags(EnumSet.of(INodeDefinition.Flag.IS_INITIAL, INodeDefinition.Flag.IS_SUCCESS)).get();
-        final GenericNode failure = ta.createNode().withFlags(EnumSet.of(INodeDefinition.Flag.IS_FAILURE)).get();
-        ta.createEdge(initial, failure).withTriggerAlways();
+        final GenericNode initial = ta.createNode().withFlags(EnumSet.of(INodeDefinition.Flag.IS_INITIAL)).get();
+        final GenericNode success = ta.createNode().withFlags(EnumSet.of(INodeDefinition.Flag.IS_SUCCESS)).get();
+        ta.createEdge(initial, success).withTriggerAlways();
 
         final Automaton a = this.createAutomaton(ta);
 
         a.proceedWithLogEntry(new GenericLogEntry(1, 0, "peek"));
-        Assert.assertTrue(a.succeeded());
+        Assert.assertFalse(a.succeeded());
     }
 
     @Test
@@ -437,7 +439,7 @@ public class AutomatonTest
         final TestAutomaton ta = new TestAutomaton().withOnLoad("engine.reject('" + rejectMsg + "')");
 
         final GenericNode initial = ta.createNode()
-            .withFlags(EnumSet.of(INodeDefinition.Flag.IS_INITIAL, INodeDefinition.Flag.IS_SUCCESS)).get();
+            .withFlags(EnumSet.of(INodeDefinition.Flag.IS_INITIAL)).get();
         final GenericNode failure = ta.createNode().withFlags(EnumSet.of(INodeDefinition.Flag.IS_SUCCESS)).get();
         ta.createEdge(initial, failure).withTriggerAlways();
 
@@ -454,8 +456,7 @@ public class AutomatonTest
     {
         final TestAutomaton ta = new TestAutomaton().withOnLoad("engine.reject(); engine.accept();");
 
-        final GenericNode initial = ta.createNode()
-            .withFlags(EnumSet.of(INodeDefinition.Flag.IS_INITIAL, INodeDefinition.Flag.IS_SUCCESS)).get();
+        final GenericNode initial = ta.createNode().withFlags(EnumSet.of(INodeDefinition.Flag.IS_INITIAL)).get();
         final GenericNode failure = ta.createNode().withFlags(EnumSet.of(INodeDefinition.Flag.IS_SUCCESS)).get();
         ta.createEdge(initial, failure).withTriggerAlways();
 
@@ -523,7 +524,9 @@ public class AutomatonTest
     public void testParametersAreAlreadyAccessibleInOnLoad()
     {
         final TestAutomaton ta = new TestAutomaton().withOnLoad("engine.getParameter('walk')");
-        ta.createNode().withFlags(EnumSet.of(INodeDefinition.Flag.IS_INITIAL, INodeDefinition.Flag.IS_SUCCESS));
+        final GenericNode initial = ta.createNode().withFlags(EnumSet.of(INodeDefinition.Flag.IS_INITIAL)).get();
+        final GenericNode success = ta.createNode().withFlags(EnumSet.of(INodeDefinition.Flag.IS_SUCCESS)).get();
+        ta.createEdge(initial, success).withTriggerAlways();
 
         final Map<String, String> parameters = new HashMap<>();
         parameters.put("walk", "true");
@@ -614,12 +617,8 @@ public class AutomatonTest
     public void testSuccessfullyCreatedAutomatonUseInitialStateEvenIfNoInputWasProcessed()
     {
         final TestAutomaton ta = new TestAutomaton();
-        ta.createNode().withFlags(EnumSet.of(INodeDefinition.Flag.IS_INITIAL, INodeDefinition.Flag.IS_SUCCESS));
-        Assert.assertTrue(this.createAutomaton(ta).succeeded());
-
-        final TestAutomaton ta2 = new TestAutomaton();
-        ta2.createNode().withFlags(EnumSet.of(INodeDefinition.Flag.IS_INITIAL));
-        Assert.assertFalse(this.createAutomaton(ta2).succeeded());
+        ta.createNode().withFlags(EnumSet.of(INodeDefinition.Flag.IS_INITIAL));
+        Assert.assertFalse(this.createAutomaton(ta).succeeded());
     }
 
     @Test(expected = ExecutionException.class)
@@ -655,7 +654,9 @@ public class AutomatonTest
         Assert.assertNotNull(a.getErrorReason());
 
         final TestAutomaton ta3 = new TestAutomaton();
-        ta3.createNode().withFlags(EnumSet.of(INodeDefinition.Flag.IS_INITIAL, INodeDefinition.Flag.IS_SUCCESS));
+        final GenericNode initial = ta3.createNode().withFlags(EnumSet.of(INodeDefinition.Flag.IS_INITIAL)).get();
+        final GenericNode success = ta3.createNode().withFlags(EnumSet.of(INodeDefinition.Flag.IS_SUCCESS)).get();
+        ta3.createEdge(initial, success).withTriggerAlways();
         a = this.createAutomaton(ta3);
         a.proceedWithLogEntry(new GenericLogEntry(1, 0, "f00"));
         Assert.assertFalse(a.canProceed());
@@ -708,12 +709,31 @@ public class AutomatonTest
     }
 
     @Test
-    public void testSuccessCheckExpressionIsEvaluated()
+    public void testSuccessCheckExpressionIsEvaluatedToSucceed()
     {
         final TestAutomaton ta = new TestAutomaton();
-        ta.createNode().withFlags(EnumSet.of(INodeDefinition.Flag.IS_INITIAL, INodeDefinition.Flag.IS_SUCCESS))
-            .withSuccessCheckExp("false");
+        final GenericNode initial = ta.createNode().withFlags(EnumSet.of(INodeDefinition.Flag.IS_INITIAL)).get();
+        final GenericNode success = ta.createNode().withFlags(EnumSet.of(INodeDefinition.Flag.IS_SUCCESS)).withSuccessCheckExp("true")
+            .get();
+        ta.createEdge(initial, success).withTriggerAlways();
         final Automaton a = this.createAutomaton(ta);
+        a.proceedWithLogEntry(new GenericLogEntry(1, 1, "HELLO WORLD!"));
+        Assert.assertFalse(a.automatonDefect());
+        Assert.assertFalse(a.canProceed());
+        Assert.assertTrue(a.succeeded());
+        Assert.assertNull(a.getErrorReason());
+    }
+
+    @Test
+    public void testSuccessCheckExpressionIsEvaluatedToFail()
+    {
+        final TestAutomaton ta = new TestAutomaton();
+        final GenericNode initial = ta.createNode().withFlags(EnumSet.of(INodeDefinition.Flag.IS_INITIAL)).get();
+        final GenericNode success = ta.createNode().withFlags(EnumSet.of(INodeDefinition.Flag.IS_SUCCESS)).withSuccessCheckExp("false")
+            .get();
+        ta.createEdge(initial, success).withTriggerAlways();
+        final Automaton a = this.createAutomaton(ta);
+        a.proceedWithLogEntry(new GenericLogEntry(1, 1, "HELLO WORLD!"));
         Assert.assertFalse(a.automatonDefect());
         Assert.assertFalse(a.canProceed());
         Assert.assertFalse(a.succeeded());
@@ -1011,15 +1031,30 @@ public class AutomatonTest
     public void testEofEventIsNotTriggeringTheAlwaysMatchingConditionAsThatIsVeryConfusingWhenDesigningAutomatons()
     {
         final TestAutomaton ta = new TestAutomaton();
-        final GenericNode initial = ta.createNode().withFlags(
-            EnumSet.of(INodeDefinition.Flag.IS_INITIAL, INodeDefinition.Flag.IS_SUCCESS)).get();
-        final GenericNode success = ta.createNode().withFlags(EnumSet.of(INodeDefinition.Flag.IS_FAILURE)).get();
+        final GenericNode initial = ta.createNode().withFlags(EnumSet.of(INodeDefinition.Flag.IS_INITIAL)).get();
+        final GenericNode success = ta.createNode().withFlags(EnumSet.of(INodeDefinition.Flag.IS_SUCCESS)).get();
         ta.createEdge(initial, success).withTriggerAlways();
 
         final Automaton a = this.createAutomaton(ta);
         a.pushEof();
 
         Assert.assertTrue(a.canProceed());
+        Assert.assertFalse(a.succeeded());
+        Assert.assertNotNull(a.getErrorReason());
+    }
+
+    @Test
+    public void testEmptyLogFilesCanBeExplicitlyDeclaredAsSuccessByUsingEofCondition()
+    {
+        final TestAutomaton ta = new TestAutomaton();
+        final GenericNode initial = ta.createNode().withFlags(EnumSet.of(INodeDefinition.Flag.IS_INITIAL)).get();
+        final GenericNode success = ta.createNode().withFlags(EnumSet.of(INodeDefinition.Flag.IS_SUCCESS)).get();
+        ta.createEdge(initial, success).withEofCondition();
+
+        final Automaton a = this.createAutomaton(ta);
+        a.pushEof();
+
+        Assert.assertFalse(a.canProceed());
         Assert.assertTrue(a.succeeded());
         Assert.assertNull(a.getErrorReason());
     }
@@ -1110,11 +1145,12 @@ public class AutomatonTest
         Assert.assertTrue(a.succeeded());
     }
 
-    private void checkSuccess(final Automaton a)
+    @Test
+    public void testAutomatonsWithSucceedingInitialStateAreRejected()
     {
-        Assert.assertTrue(a.canProceed());
-        Assert.assertTrue(a.succeeded());
-        Assert.assertNull(a.getErrorReason());
+        final TestAutomaton ta = new TestAutomaton();
+        ta.createNode().withFlags(EnumSet.of(INodeDefinition.Flag.IS_INITIAL, INodeDefinition.Flag.IS_SUCCESS));
+        Assert.assertTrue(this.createAutomaton(ta).automatonDefect());
     }
 
     private Automaton createAndCheckAutomaton(final TestAutomaton ta)

@@ -27,6 +27,7 @@ import de.pixida.logtest.automatondefinitions.AutomatonLoadingException;
 import de.pixida.logtest.automatondefinitions.IAutomatonDefinition;
 import de.pixida.logtest.automatondefinitions.IEdgeDefinition;
 import de.pixida.logtest.automatondefinitions.INodeDefinition;
+import de.pixida.logtest.engine.AutomatonNode.Flag;
 import de.pixida.logtest.engine.conditions.IEventDescription;
 import de.pixida.logtest.engine.conditions.IScriptEnvironment;
 import de.pixida.logtest.logreaders.ILogEntry;
@@ -301,7 +302,7 @@ public class Automaton
 
     public Automaton(final IAutomatonDefinition aAutomatonDefinition, final Map<String, String> aParameters)
     {
-        LOG.debug("Creating automaton with definition '{}' and parameters '{}'", aAutomatonDefinition, aParameters);
+        LOG.debug("Creating automaton with definition '{}' and parameters '{}'", aAutomatonDefinition, aParameters.toString());
         Validate.notNull(aAutomatonDefinition);
         Validate.notNull(aParameters);
         this.automatonDefinition = aAutomatonDefinition;
@@ -613,6 +614,17 @@ public class Automaton
         this.checkFailureNodesHaveNoOutgoingEdges();
         this.checkAllEdgesHaveAtLeastOneCondition();
         this.checkSuccessCheckExpIsOnlyAppliedToSuccessNodes();
+        this.checkIfInitialNodeIsNoSuccessNode();
+    }
+
+    private void checkIfInitialNodeIsNoSuccessNode()
+    {
+        assert this.initialNode != null;
+        if (this.initialNode.hasFlag(Flag.IS_SUCCESS))
+        {
+            throw new InvalidAutomatonDefinitionException("Initial node is declared as a success node. This is not allowed as it makes "
+                + "automatons tolerant against empty sources - which is usually not desired.");
+        }
     }
 
     private void checkSuccessCheckExpIsOnlyAppliedToSuccessNodes()
