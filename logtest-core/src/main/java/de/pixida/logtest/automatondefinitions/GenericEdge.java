@@ -25,6 +25,7 @@ public class GenericEdge implements IEdgeDefinition
     private ITimeInterval timeIntervalSinceAutomatonStart;
     private ITimeInterval timeIntervalForEvent;
     private String channel;
+    private String comment;
 
     public GenericEdge(final String aId, final INodeDefinition aSource, final INodeDefinition aDestination)
     {
@@ -164,6 +165,17 @@ public class GenericEdge implements IEdgeDefinition
     public void setChannel(final String value)
     {
         this.channel = value;
+    }
+
+    @Override
+    public String getComment()
+    {
+        return this.comment;
+    }
+
+    public void setComment(final String value)
+    {
+        this.comment = value;
     }
 
     // Just for logging output / no business use

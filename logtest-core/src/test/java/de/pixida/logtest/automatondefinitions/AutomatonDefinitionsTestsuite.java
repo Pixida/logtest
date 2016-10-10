@@ -14,7 +14,8 @@ import org.junit.runners.Suite.SuiteClasses;
 @RunWith(Suite.class)
 @SuiteClasses({
                 StringToGenericTimeIntervalConverterTest.class,
-                JsonAutomatonDefinitionTest.class
+                JsonAutomatonDefinitionTest.class,
+                AutomatonDefinitionToJsonConverterTest.class
 })
 public class AutomatonDefinitionsTestsuite
 {

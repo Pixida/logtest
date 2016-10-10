@@ -455,7 +455,8 @@ public class RunIntegrationTests
         formatter.setWidth(assumedConsoleWidth);
         formatter.printHelp("java -jar logtest-buildserver-app.jar [OPTIONS]... [EXECUTIONS]...\n"
             + "An EXECUTION is a triple <scenario-filename>:<automaton-filename>[:<parameters, comma separated key=value pairs...>,<...>]"
-            + " e.g. tracelog.txt:checkSystemStartupSucceeds.json:timeout=30,waitForNetIO=yes",
+            + " e.g. tracelog.txt:checkSystemStartupSucceeds.json:waitForNetIO=yes,timeout=30"
+            + "\n", // Separate help text from description of parameters with an empty line
             options);
     }
 

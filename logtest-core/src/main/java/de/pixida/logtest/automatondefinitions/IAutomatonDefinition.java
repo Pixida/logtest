@@ -11,9 +11,11 @@ import java.util.List;
 
 public interface IAutomatonDefinition
 {
-    List<INodeDefinition> getNodes();
+    void load();
 
-    List<IEdgeDefinition> getEdges();
+    List<? extends INodeDefinition> getNodes();
+
+    List<? extends IEdgeDefinition> getEdges();
 
     String getOnLoad();
 

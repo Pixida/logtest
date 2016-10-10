@@ -276,4 +276,10 @@ public class TestAutomaton implements IAutomatonDefinition
     {
         return this.comment;
     }
+
+    @Override
+    public void load()
+    {
+        // Nothing to do, we're always "loaded"
+    }
 }

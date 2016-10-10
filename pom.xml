@@ -5,7 +5,7 @@
 
 	<groupId>de.pixida.logtest</groupId>
 	<artifactId>logtest</artifactId>
-	<version>1.0.1</version>
+	<version>1.0.2</version>
 	<name>Logtest</name>
 	<description>A toolset for running finite automatons on log files for module and integration testing.</description>
 	<url>https://github.com/Pixida/logtest</url>

@@ -10,6 +10,7 @@
 			'onEnter': 'x = 10',
 			'onLeave': 'x++;',
 			'wait': false,
+			'comment': 'node_comment',
 			'outgoingEdges':
 			[
 				{
@@ -21,14 +22,14 @@
 					},
 					'checkExp': 'x % 2 == 0',
 					'onWalk': 'engine.info("info msg"); engine.debug("debug msg"); engine.reject("We\'re finished"); engine.getLogEntry();',
-					'requiredConditions': 'one'
+					'requiredConditions': 'one',
+					'comment': 'edge_comment'
 				},
 				{
 					'id': 'to_success',
 					'destination': 'success',
 					'regExp': '[A-Z]*',
 					'triggerOnEof': false,
-					'channel': null,
 					'timeIntervalSinceLastTransition': '55',
 					'timeIntervalSinceAutomatonStart': '100',
 					'timeIntervalForEvent': 365

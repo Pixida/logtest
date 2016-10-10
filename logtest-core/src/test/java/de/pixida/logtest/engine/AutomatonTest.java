@@ -1153,6 +1153,26 @@ public class AutomatonTest
         Assert.assertTrue(this.createAutomaton(ta).automatonDefect());
     }
 
+    //    @Test
+    //    public void testNumericReturnValuesCanBeProcessedLikePrimitiveNumbers()
+    //    {
+    //        final int maxLineNumber = 100000;
+    //        final TestAutomaton ta = new TestAutomaton().withOnLoad("var firstLineNumber;");
+    //        final GenericNode initial = ta.createNode().withFlags(EnumSet.of(INodeDefinition.Flag.IS_INITIAL)).get();
+    //        final GenericNode success = ta.createNode().withFlags(EnumSet.of(INodeDefinition.Flag.IS_SUCCESS)).withWait().get();
+    //        final GenericNode failure = ta.createNode().withFlags(EnumSet.of(INodeDefinition.Flag.IS_FAILURE)).get();
+    //        ta.createEdge(initial, success).withTriggerAlways().withOnWalk("firstLineNumber = engine.getLogEntryLineNumber()");
+    //        ta.createEdge(success, failure).withCheckExp("!(engine.getLogEntryLineNumber() > firstLineNumber)");
+    //        final Automaton a = this.createAndCheckAutomaton(ta);
+    //
+    //        for (int i = 0; i <= maxLineNumber && a.canProceed(); i++)
+    //        {
+    //            a.proceedWithLogEntry(new GenericLogEntry(i, 0, ""));
+    //        }
+    //
+    //        Assert.assertFalse(a.succeeded());
+    //    }
+
     private Automaton createAndCheckAutomaton(final TestAutomaton ta)
     {
         return this.createAndCheckAutomaton(ta, Collections.emptyMap());

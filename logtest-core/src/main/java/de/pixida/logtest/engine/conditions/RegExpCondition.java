@@ -71,7 +71,7 @@ public class RegExpCondition extends BaseCondition
             {
                 this.matchingGroups.add(matcher.group(i));
             }
-            LOG.trace("Pattern '{}' matched with groups '{}'", this.regExp, this.matchingGroups);
+            LOG.debug("Pattern '{}' matched with groups '{}'", this.regExp, this.matchingGroups);
             return true;
         }
         else
@@ -80,7 +80,7 @@ public class RegExpCondition extends BaseCondition
             {
                 this.matchingGroups.clear();
             }
-            LOG.trace("Pattern '{}' did not match", this.regExp);
+            LOG.debug("Pattern '{}' did not match", this.regExp);
             return false;
         }
     }

@@ -42,4 +42,6 @@ public interface IEdgeDefinition
     ITimeInterval getTimeIntervalForEvent();
 
     String getChannel();
+
+    String getComment();
 }

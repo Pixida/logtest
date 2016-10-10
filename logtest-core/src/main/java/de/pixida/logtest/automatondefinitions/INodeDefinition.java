@@ -27,4 +27,6 @@ public interface INodeDefinition
     String getSuccessCheckExp();
 
     boolean getWait();
+
+    String getComment();
 }

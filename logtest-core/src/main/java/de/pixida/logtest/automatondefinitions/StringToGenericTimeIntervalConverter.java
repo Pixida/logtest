@@ -133,13 +133,9 @@ public abstract class StringToGenericTimeIntervalConverter
 
     private static Map<String, TimeUnit> getStrToUnitMap()
     {
-        if (STR_TO_UNIT_MAP.isEmpty())
+        for (final JsonTimeUnit unit : JsonTimeUnit.values())
         {
-            STR_TO_UNIT_MAP.put("ms", TimeUnit.MILLISECONDS);
-            STR_TO_UNIT_MAP.put("s", TimeUnit.SECONDS);
-            STR_TO_UNIT_MAP.put("m", TimeUnit.MINUTES);
-            STR_TO_UNIT_MAP.put("h", TimeUnit.HOURS);
-            STR_TO_UNIT_MAP.put("d", TimeUnit.DAYS);
+            STR_TO_UNIT_MAP.put(unit.getName(), unit.getTimeUnit());
         }
         return STR_TO_UNIT_MAP;
     }

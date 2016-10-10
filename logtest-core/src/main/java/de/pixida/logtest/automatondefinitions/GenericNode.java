@@ -17,6 +17,7 @@ public class GenericNode implements INodeDefinition
     private String onLeave;
     private String successCheckExp;
     private boolean wait;
+    private String comment;
 
     public GenericNode(final String aId, final Set<Flag> aFlags)
     {
@@ -77,6 +78,17 @@ public class GenericNode implements INodeDefinition
     public void setWait(final boolean value)
     {
         this.wait = value;
+    }
+
+    @Override
+    public String getComment()
+    {
+        return this.comment;
+    }
+
+    public void setComment(final String value)
+    {
+        this.comment = value;
     }
 
     // Just for logging output / no business use

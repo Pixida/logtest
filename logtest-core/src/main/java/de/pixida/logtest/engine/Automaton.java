@@ -302,7 +302,7 @@ public class Automaton
 
     public Automaton(final IAutomatonDefinition aAutomatonDefinition, final Map<String, String> aParameters)
     {
-        LOG.debug("Creating automaton with definition '{}' and parameters '{}'", aAutomatonDefinition, aParameters.toString());
+        LOG.debug("Creating automaton with definition '{}' and parameters '{}'", aAutomatonDefinition, aParameters);
         Validate.notNull(aAutomatonDefinition);
         Validate.notNull(aParameters);
         this.automatonDefinition = aAutomatonDefinition;
@@ -404,14 +404,17 @@ public class Automaton
     {
         if (this.automatonDefect())
         {
+            LOG.debug("Run failed: Automaton is defect");
             return false;
         }
         if (this.acceptFlag)
         {
+            LOG.debug("Run succeeded: Accept flag was set");
             return true;
         }
         if (this.rejectFlag)
         {
+            LOG.debug("Run failed: Reject flag was set");
             return false;
         }
         AutomatonNode checkNode;
@@ -424,7 +427,17 @@ public class Automaton
         {
             checkNode = this.currentNode;
         }
-        return this.checkNodeSucceeds(checkNode);
+        final NodeSuccessState nodeState = this.getNodeSuccessState(checkNode);
+        final boolean success = nodeState == NodeSuccessState.SUCCESS;
+        if (success)
+        {
+            LOG.debug("Run succeeded: Node is succeeding");
+        }
+        else
+        {
+            LOG.debug("Run failed: Node is not succeeding but {}", nodeState);
+        }
+        return success;
     }
 
     public boolean automatonDefect()
@@ -558,11 +571,6 @@ public class Automaton
         }
     }
 
-    private boolean checkNodeSucceeds(final AutomatonNode node)
-    {
-        return this.getNodeSuccessState(node) == NodeSuccessState.SUCCESS;
-    }
-
     private NodeSuccessState getNodeSuccessState(final AutomatonNode node)
     {
         if (!node.hasFlag(AutomatonNode.Flag.IS_SUCCESS))
@@ -692,29 +700,30 @@ public class Automaton
     private void loadAutomatonFromDefinition()
     {
         LOG.debug("Loading automaton from definition");
-        final List<INodeDefinition> externalNodes;
-        final List<IEdgeDefinition> externalEdges;
         try
         {
-            Validate.isTrue(this.scriptingEngine == null); // Must not be initialized yet; otherwise, the setting has no more effect
-            this.scriptLanguage = this.automatonDefinition.getScriptLanguage();
-            this.initScriptEngine();
-            externalNodes = this.automatonDefinition.getNodes();
-            externalEdges = this.automatonDefinition.getEdges();
-            this.onLoad = new EmbeddedScript(this.automatonDefinition.getOnLoad());
-            this.comment = this.automatonDefinition.getComment();
+            this.automatonDefinition.load();
         }
         catch (final AutomatonLoadingException ale)
         {
             throw new InvalidAutomatonDefinitionException("Failed to load automaton!", ale);
         }
+
+        Validate.isTrue(this.scriptingEngine == null); // Must not be initialized yet; otherwise, the setting has no more effect
+        this.scriptLanguage = this.automatonDefinition.getScriptLanguage();
+        this.initScriptEngine();
+        final List<? extends INodeDefinition> externalNodes = this.automatonDefinition.getNodes();
+        final List<? extends IEdgeDefinition> externalEdges = this.automatonDefinition.getEdges();
+        this.onLoad = new EmbeddedScript(this.automatonDefinition.getOnLoad());
+        this.comment = this.automatonDefinition.getComment();
+
         final Map<INodeDefinition, AutomatonNode> mapNodeDefinitionsToInternalNode = new HashMap<>();
         this.loadNodesFromDefinition(externalNodes, mapNodeDefinitionsToInternalNode);
         this.loadEdgesFromDefinition(externalEdges, mapNodeDefinitionsToInternalNode);
         LOG.debug("Added '{}' nodes and '{}' edges", this.nodes.size(), this.edges.size());
     }
 
-    private void loadEdgesFromDefinition(final List<IEdgeDefinition> externalEdges,
+    private void loadEdgesFromDefinition(final List<? extends IEdgeDefinition> externalEdges,
         final Map<INodeDefinition, AutomatonNode> mapNodeDefinitionsToInternalNode)
     {
         LOG.debug("Loading edges from definition");
@@ -762,7 +771,7 @@ public class Automaton
         LOG.debug("Edges from definition loaded");
     }
 
-    private void loadNodesFromDefinition(final List<INodeDefinition> externalNodes,
+    private void loadNodesFromDefinition(final List<? extends INodeDefinition> externalNodes,
         final Map<INodeDefinition, AutomatonNode> mapNodeDefinitionsToInternalNode)
     {
         LOG.debug("Loading nodes from definition");
