@@ -17,6 +17,12 @@ public interface IEdgeDefinition
         ONE
     }
 
+    String getId();
+
+    String getName();
+
+    String getDescription();
+
     INodeDefinition getSource();
 
     INodeDefinition getDestination();
@@ -42,6 +48,4 @@ public interface IEdgeDefinition
     ITimeInterval getTimeIntervalForEvent();
 
     String getChannel();
-
-    String getComment();
 }

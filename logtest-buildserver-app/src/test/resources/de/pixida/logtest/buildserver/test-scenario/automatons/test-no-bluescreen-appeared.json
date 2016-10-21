@@ -2,8 +2,19 @@
 	'nodes':
 	[
 		{
-			'id': 'ok',
+			'id': 'initial',
 			'initial': true,
+			'outgoingEdges':
+			[
+				{
+					'id': 'default_is_ok',
+					'destination': 'ok',
+					'triggerAlways': true
+				}
+			]
+		},
+		{
+			'id': 'ok',
 			'success': true,
 			'outgoingEdges':
 			[

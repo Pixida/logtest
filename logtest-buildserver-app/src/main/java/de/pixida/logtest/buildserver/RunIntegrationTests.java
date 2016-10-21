@@ -175,9 +175,11 @@ public class RunIntegrationTests
         }
         catch (final ParseException e)
         {
+            // CHECKSTYLE:OFF We intentionally print to STDERR here
             System.err.println(e.getMessage());
             System.err.println();
             printHelp(options);
+            // CHECKSTYLE:ON
 
             // Abort with failure - build server job must not succeed if the calling convention is erroneous
             throw new ExitWithFailureException();
@@ -354,10 +356,6 @@ public class RunIntegrationTests
     private ILogReader createAndConfigureLogReader(final File logFile)
     {
         final GenericLogReader logReader = new GenericLogReader(logFile);
-
-        // Define default settings here for now
-        logReader.setHeadlinePattern("^(.*?([0-9]+))");
-        logReader.setHeadlinePatternIndexOfTimestamp(1 + 1);
 
         // Settings from configuration file
         if (this.logReaderConfigFromFile != null)

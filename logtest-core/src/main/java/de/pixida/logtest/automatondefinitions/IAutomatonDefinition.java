@@ -21,7 +21,7 @@ public interface IAutomatonDefinition
 
     String getDisplayName();
 
-    String getComment();
+    String getDescription();
 
     String getScriptLanguage();
 }

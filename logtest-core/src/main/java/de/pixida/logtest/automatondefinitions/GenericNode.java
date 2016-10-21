@@ -7,33 +7,42 @@
 
 package de.pixida.logtest.automatondefinitions;
 
-import java.util.Set;
+import org.apache.commons.lang3.StringUtils;
 
 public class GenericNode implements INodeDefinition
 {
     private final String id;
-    private Set<Flag> flags;
+    private String name;
+    private Type type;
     private String onEnter;
     private String onLeave;
     private String successCheckExp;
     private boolean wait;
-    private String comment;
+    private String description;
 
-    public GenericNode(final String aId, final Set<Flag> aFlags)
+    private String nameForLogging;
+
+    public GenericNode(final String aId)
     {
         this.id = aId;
-        this.flags = aFlags;
+        this.createNameForLogging();
     }
 
     @Override
-    public Set<Flag> getFlags()
+    public String getId()
     {
-        return this.flags;
+        return this.id;
     }
 
-    public void setFlags(final Set<Flag> value)
+    @Override
+    public Type getType()
     {
-        this.flags = value;
+        return this.type;
+    }
+
+    public void setType(final Type value)
+    {
+        this.type = value;
     }
 
     @Override
@@ -81,20 +90,53 @@ public class GenericNode implements INodeDefinition
     }
 
     @Override
-    public String getComment()
+    public String getName()
     {
-        return this.comment;
+        return this.name;
     }
 
-    public void setComment(final String value)
+    public void setName(final String value)
     {
-        this.comment = value;
+        this.name = value;
+        this.createNameForLogging();
+    }
+
+    @Override
+    public String getDescription()
+    {
+        return this.description;
+    }
+
+    public void setDescription(final String value)
+    {
+        this.description = value;
+    }
+
+    private void createNameForLogging()
+    {
+        if (StringUtils.isNotBlank(this.name))
+        {
+            this.nameForLogging = this.replaceWhitespacesAgainstSpace(this.name);
+        }
+        else if (StringUtils.isNotBlank(this.id))
+        {
+            this.nameForLogging = this.replaceWhitespacesAgainstSpace(this.id);
+        }
+        else
+        {
+            this.nameForLogging = "";
+        }
+    }
+
+    private String replaceWhitespacesAgainstSpace(final String value)
+    {
+        return value.replaceAll("\\s", " ");
     }
 
     // Just for logging output / no business use
     @Override
     public String toString()
     {
-        return this.id;
+        return this.nameForLogging;
     }
 }

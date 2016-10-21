@@ -13,8 +13,10 @@ import java.util.Map;
 import de.pixida.logtest.automatondefinitions.PregCallbackReplacer;
 import de.pixida.logtest.engine.conditions.IParameters;
 
-class AutomatonParameters implements IParameters
+public class AutomatonParameters implements IParameters
 {
+    public static final String PARAMETER_PREG = "\\$\\{(.*?)\\}";
+
     private final Map<String, String> parameters;
 
     AutomatonParameters(final Map<String, String> map)
@@ -36,7 +38,7 @@ class AutomatonParameters implements IParameters
         }
         else
         {
-            return new PregCallbackReplacer("\\$\\{(.*?)\\}").replaceMatches(value, match -> {
+            return new PregCallbackReplacer(PARAMETER_PREG).replaceMatches(value, match -> {
                 final String paramName = match.group(1);
                 final String v = this.parameters.get(paramName);
                 if (v == null)

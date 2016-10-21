@@ -1,20 +1,23 @@
 {
 	'onLoad': 'x = 1;',
-	'comment': 'test automaton',
+	'description': 'test automaton',
 	'scriptLanguage': 'Python',
 	'nodes':
 	[
 		{
 			'id': 'start',
+			'name': 'start_name',
+			'description': 'node_description',
 			'initial': true,
 			'onEnter': 'x = 10',
 			'onLeave': 'x++;',
 			'wait': false,
-			'comment': 'node_comment',
 			'outgoingEdges':
 			[
 				{
 					'id': 'to_failing',
+					'name': 'to_failing_name',
+					'description': 'edge_description',
 					'destination': 'failing',
 					'timeIntervalSinceLastMicrotransition': {
 						'min': { 'value': '10', 'unit': 's', 'isInclusive': true },
@@ -23,10 +26,10 @@
 					'checkExp': 'x % 2 == 0',
 					'onWalk': 'engine.info("info msg"); engine.debug("debug msg"); engine.reject("We\'re finished"); engine.getLogEntry();',
 					'requiredConditions': 'one',
-					'comment': 'edge_comment'
 				},
 				{
 					'id': 'to_success',
+					'name': 'to_success_name',
 					'destination': 'success',
 					'regExp': '[A-Z]*',
 					'triggerOnEof': false,
@@ -47,16 +50,19 @@
 		},
 		{
 			'id': 'failing',
+			'name': 'failing_name',
 			'failure': true,
 			'wait': true
 		},
 		{
 			'id': 'success',
+			'name': 'success_name',
 			'success': true,
 			'successCheckExp': 'true'
 		},
 		{
 			'id': 'dummy',
+			'name': 'dummy_name',
 			'outgoingEdges':
 			[
 			]

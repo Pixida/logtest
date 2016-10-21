@@ -50,11 +50,12 @@ public class GenericLogReader implements ILogReader
     private BufferedReader br;
     private String lookaheadLine;
 
-    private String headlinePattern;
-    private Integer headlinePatternIndexOfTimestamp;
-    private Integer headlinePatternIndexOfChannel;
-    private boolean trimPayload;
-    private boolean removeEmptyPayloadLinesFromMultilineEntry;
+    // Put default configuration here... note: It would be fatal to change them. In this case, define new properties and map old values.
+    private String headlinePattern = "^(.*?([0-9]+))";
+    private Integer headlinePatternIndexOfTimestamp = 2;
+    private Integer headlinePatternIndexOfChannel = null;
+    private boolean trimPayload = true;
+    private boolean removeEmptyPayloadLinesFromMultilineEntry = true;
     private HandlingOfNonHeadlineLines handlingOfNonHeadlineLines = HandlingOfNonHeadlineLines.FAIL;
     private Charset logFileCharset = StandardCharsets.UTF_8;
 
@@ -118,37 +119,37 @@ public class GenericLogReader implements ILogReader
         this.logFileCharset = value;
     }
 
-    String getHeadlinePattern()
+    public String getHeadlinePattern()
     {
         return this.headlinePattern;
     }
 
-    Integer getHeadlinePatternIndexOfTimestamp()
+    public Integer getHeadlinePatternIndexOfTimestamp()
     {
         return this.headlinePatternIndexOfTimestamp;
     }
 
-    Integer getHeadlinePatternIndexOfChannel()
+    public Integer getHeadlinePatternIndexOfChannel()
     {
         return this.headlinePatternIndexOfChannel;
     }
 
-    boolean getTrimPayload()
+    public boolean getTrimPayload()
     {
         return this.trimPayload;
     }
 
-    boolean getRemoveEmptyPayloadLinesFromMultilineEntry()
+    public boolean getRemoveEmptyPayloadLinesFromMultilineEntry()
     {
         return this.removeEmptyPayloadLinesFromMultilineEntry;
     }
 
-    HandlingOfNonHeadlineLines getHandlingOfNonHeadlineLines()
+    public HandlingOfNonHeadlineLines getHandlingOfNonHeadlineLines()
     {
         return this.handlingOfNonHeadlineLines;
     }
 
-    Charset getLogFileCharset()
+    public Charset getLogFileCharset()
     {
         return this.logFileCharset;
     }
@@ -203,20 +204,67 @@ public class GenericLogReader implements ILogReader
     }
 
     @Override
+    public JSONObject getSettingsForConfigurationFile()
+    {
+        final JSONObject configuration = new JSONObject();
+        this.writeStringToConfig(configuration, GenericLogReaderJsonKey.HEADLINE_PATTERN, this.headlinePattern);
+        this.writeIntegerToConfig(configuration, GenericLogReaderJsonKey.HEADLINE_PATTERN_INDEX_OF_TIMESTAMP,
+            this.headlinePatternIndexOfTimestamp);
+        this.writeIntegerToConfig(configuration, GenericLogReaderJsonKey.HEADLINE_PATTERN_INDEX_OF_CHANNEL,
+            this.headlinePatternIndexOfChannel);
+        this.writeBooleanToConfig(configuration, GenericLogReaderJsonKey.TRIM_PAYLOAD, this.trimPayload);
+        this.writeBooleanToConfig(configuration, GenericLogReaderJsonKey.REMOVE_EMPTY_PAYLOAD_LINES_FROM_MULTILINE_ENTRY,
+            this.removeEmptyPayloadLinesFromMultilineEntry);
+        this.writeStringToConfig(configuration, GenericLogReaderJsonKey.HANDLING_OF_NON_HEADLINE_LINES,
+            this.handlingOfNonHeadlineLines == null ? null : this.handlingOfNonHeadlineLines.toString());
+        this.writeStringToConfig(configuration, GenericLogReaderJsonKey.LOG_FILE_CHARSET,
+            this.logFileCharset == null ? null : this.logFileCharset.name());
+        return configuration;
+    }
+
+    private void writeStringToConfig(final JSONObject configuration, final GenericLogReaderJsonKey jsonProperty, final String value)
+    {
+        Validate.notNull(configuration);
+        Validate.notNull(jsonProperty);
+        if (value != null)
+        {
+            configuration.put(jsonProperty.getKey(), value);
+        }
+    }
+
+    private void writeIntegerToConfig(final JSONObject configuration, final GenericLogReaderJsonKey jsonProperty, final Integer value)
+    {
+        Validate.notNull(configuration);
+        Validate.notNull(jsonProperty);
+        if (value != null)
+        {
+            configuration.put(jsonProperty.getKey(), value);
+        }
+    }
+
+    private void writeBooleanToConfig(final JSONObject configuration, final GenericLogReaderJsonKey jsonProperty, final Boolean value)
+    {
+        Validate.notNull(configuration);
+        Validate.notNull(jsonProperty);
+        if (value != null)
+        {
+            configuration.put(jsonProperty.getKey(), value);
+        }
+    }
+
+    @Override
     public void overwriteCurrentSettingsWithSettingsInConfigurationFile(final JSONObject configuration)
     {
-        this.headlinePattern = this.getStringFromConfig(configuration, "headlinePattern", this.headlinePattern);
-        this.headlinePatternIndexOfTimestamp = this.getIntegerFromConfig(configuration, "headlinePatternIndexOfTimestamp",
-            this.headlinePatternIndexOfTimestamp);
-        this.headlinePatternIndexOfChannel = this.getIntegerFromConfig(configuration, "headlinePatternIndexOfChannel",
-            this.headlinePatternIndexOfChannel);
-        this.trimPayload = this.getBoolFromConfig(configuration, "trimPayload", this.trimPayload);
-        this.removeEmptyPayloadLinesFromMultilineEntry = this.getBoolFromConfig(configuration, "removeEmptyPayloadLinesFromMultilineEntry",
-            this.removeEmptyPayloadLinesFromMultilineEntry);
-        String itemName = "handlingOfNonHeadlineLines";
-        this.readConfiguredHandlingOfNonHeadlineLinesSetting(configuration, itemName);
-        itemName = "logFileCharset";
-        this.readConfiguredLogFileCharset(configuration, itemName);
+        this.headlinePattern = this.getStringFromConfig(configuration, GenericLogReaderJsonKey.HEADLINE_PATTERN, this.headlinePattern);
+        this.headlinePatternIndexOfTimestamp = this.getIntegerFromConfig(configuration,
+            GenericLogReaderJsonKey.HEADLINE_PATTERN_INDEX_OF_TIMESTAMP, this.headlinePatternIndexOfTimestamp);
+        this.headlinePatternIndexOfChannel = this.getIntegerFromConfig(configuration,
+            GenericLogReaderJsonKey.HEADLINE_PATTERN_INDEX_OF_CHANNEL, this.headlinePatternIndexOfChannel);
+        this.trimPayload = this.getBoolFromConfig(configuration, GenericLogReaderJsonKey.TRIM_PAYLOAD, this.trimPayload);
+        this.removeEmptyPayloadLinesFromMultilineEntry = this.getBoolFromConfig(configuration,
+            GenericLogReaderJsonKey.REMOVE_EMPTY_PAYLOAD_LINES_FROM_MULTILINE_ENTRY, this.removeEmptyPayloadLinesFromMultilineEntry);
+        this.readConfiguredHandlingOfNonHeadlineLinesSetting(configuration, GenericLogReaderJsonKey.HANDLING_OF_NON_HEADLINE_LINES);
+        this.readConfiguredLogFileCharset(configuration, GenericLogReaderJsonKey.LOG_FILE_CHARSET);
     }
 
     @Override
@@ -238,18 +286,18 @@ public class GenericLogReader implements ILogReader
         // We open on demand
     }
 
-    private void readConfiguredHandlingOfNonHeadlineLinesSetting(final JSONObject configuration, final String itemName)
+    private void readConfiguredHandlingOfNonHeadlineLinesSetting(final JSONObject configuration, final GenericLogReaderJsonKey jsonProperty)
     {
-        if (configuration.has(itemName))
+        if (configuration.has(jsonProperty.getKey()))
         {
             String value;
             try
             {
-                value = configuration.getString(itemName);
+                value = configuration.getString(jsonProperty.getKey());
             }
             catch (final JSONException jsonEx)
             {
-                throw this.createJsonConfigException("string", itemName);
+                throw this.createJsonConfigException("string", jsonProperty.getKey());
             }
             try
             {
@@ -257,25 +305,26 @@ public class GenericLogReader implements ILogReader
             }
             catch (final IllegalArgumentException iae)
             {
-                LOG.error("Invalid value for setting '{}': '{}'. Allowed values: {}", itemName, value, HandlingOfNonHeadlineLines.values());
-                throw new LogReaderException("Invalid value for setting '" + itemName + "': '" + value + "'. Allowed values: "
+                LOG.error("Invalid value for setting '{}': '{}'. Allowed values: {}", jsonProperty.getKey(), value,
+                    HandlingOfNonHeadlineLines.values());
+                throw new LogReaderException("Invalid value for setting '" + jsonProperty.getKey() + "': '" + value + "'. Allowed values: "
                     + StringUtils.join(HandlingOfNonHeadlineLines.values(), ", "));
             }
         }
     }
 
-    private void readConfiguredLogFileCharset(final JSONObject configuration, final String itemName)
+    private void readConfiguredLogFileCharset(final JSONObject configuration, final GenericLogReaderJsonKey jsonProperty)
     {
-        if (configuration.has(itemName))
+        if (configuration.has(jsonProperty.getKey()))
         {
             String value;
             try
             {
-                value = configuration.getString(itemName);
+                value = configuration.getString(jsonProperty.getKey());
             }
             catch (final JSONException jsonEx)
             {
-                throw this.createJsonConfigException("string", itemName);
+                throw this.createJsonConfigException("string", jsonProperty.getKey());
             }
             try
             {
@@ -283,8 +332,8 @@ public class GenericLogReader implements ILogReader
             }
             catch (IllegalCharsetNameException | UnsupportedCharsetException e)
             {
-                LOG.error("Invalid or unsupported charset for setting '{}': {}", itemName, value);
-                throw new LogReaderException("Invalid or unsupported charset for setting '" + itemName + "': " + value);
+                LOG.error("Invalid or unsupported charset for setting '{}': {}", jsonProperty.getKey(), value);
+                throw new LogReaderException("Invalid or unsupported charset for setting '" + jsonProperty.getKey() + "': " + value);
             }
         }
     }
@@ -295,13 +344,14 @@ public class GenericLogReader implements ILogReader
         return new LogReaderException("Invalid type for setting '" + itemName + "', expecting '" + expectedType + "'");
     }
 
-    private String getStringFromConfig(final JSONObject configuration, final String itemName, final String currentValue)
+    private String getStringFromConfig(final JSONObject configuration, final GenericLogReaderJsonKey jsonProperty,
+        final String currentValue)
     {
         try
         {
-            if (configuration.has(itemName))
+            if (configuration.has(jsonProperty.getKey()))
             {
-                return configuration.getString(itemName);
+                return configuration.getString(jsonProperty.getKey());
             }
             else
             {
@@ -310,17 +360,18 @@ public class GenericLogReader implements ILogReader
         }
         catch (final JSONException jsonEx)
         {
-            throw this.createJsonConfigException("string", itemName);
+            throw this.createJsonConfigException("string", jsonProperty.getKey());
         }
     }
 
-    private Integer getIntegerFromConfig(final JSONObject configuration, final String itemName, final Integer currentValue)
+    private Integer getIntegerFromConfig(final JSONObject configuration, final GenericLogReaderJsonKey jsonProperty,
+        final Integer currentValue)
     {
         try
         {
-            if (configuration.has(itemName))
+            if (configuration.has(jsonProperty.getKey()))
             {
-                return configuration.isNull(itemName) ? null : configuration.getInt(itemName);
+                return configuration.isNull(jsonProperty.getKey()) ? null : configuration.getInt(jsonProperty.getKey());
             }
             else
             {
@@ -329,17 +380,18 @@ public class GenericLogReader implements ILogReader
         }
         catch (final JSONException jsonEx)
         {
-            throw this.createJsonConfigException("integer", itemName);
+            throw this.createJsonConfigException("integer", jsonProperty.getKey());
         }
     }
 
-    private boolean getBoolFromConfig(final JSONObject configuration, final String itemName, final boolean currentValue)
+    private boolean getBoolFromConfig(final JSONObject configuration, final GenericLogReaderJsonKey jsonProperty,
+        final boolean currentValue)
     {
         try
         {
-            if (configuration.has(itemName))
+            if (configuration.has(jsonProperty.getKey()))
             {
-                return configuration.getBoolean(itemName);
+                return configuration.getBoolean(jsonProperty.getKey());
             }
             else
             {
@@ -348,7 +400,7 @@ public class GenericLogReader implements ILogReader
         }
         catch (final JSONException jsonEx)
         {
-            throw this.createJsonConfigException("bool", itemName);
+            throw this.createJsonConfigException("bool", jsonProperty.getKey());
         }
     }
 

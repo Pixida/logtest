@@ -1,0 +1,65 @@
+{
+	'onLoad': 'x = 1;',
+	'comment': 'test automaton',
+	'scriptLanguage': 'Python',
+	'nodes':
+	[
+		{
+			'id': 'start',
+			'initial': true,
+			'onEnter': 'x = 10',
+			'onLeave': 'x++;',
+			'wait': false,
+			'comment': 'node_description',
+			'outgoingEdges':
+			[
+				{
+					'id': 'to_failing',
+					'destination': 'failing',
+					'timeIntervalSinceLastMicrotransition': {
+						'min': { 'value': '10', 'unit': 's', 'isInclusive': true },
+						'max': { 'value': '20', 'unit': 'm', 'isInclusive': false }
+					},
+					'checkExp': 'x % 2 == 0',
+					'onWalk': 'engine.info("info msg"); engine.debug("debug msg"); engine.reject("We\'re finished"); engine.getLogEntry();',
+					'requiredConditions': 'one',
+					'comment': 'edge_description'
+				},
+				{
+					'id': 'to_success',
+					'destination': 'success',
+					'regExp': '[A-Z]*',
+					'triggerOnEof': false,
+					'timeIntervalSinceLastTransition': '55',
+					'timeIntervalSinceAutomatonStart': '100',
+					'timeIntervalForEvent': 365
+				},
+				{
+					'id': 'several_criteria',
+					'destination': 'dummy',
+					'regExp': '[^A-Z]',
+					'triggerAlways': true,
+					'triggerOnEof': true,
+					'requiredConditions': 'all',
+					'channel': 'chan'
+				}
+			]
+		},
+		{
+			'id': 'failing',
+			'failure': true,
+			'wait': true
+		},
+		{
+			'id': 'success',
+			'success': true,
+			'successCheckExp': 'true'
+		},
+		{
+			'id': 'dummy',
+			'outgoingEdges':
+			[
+			]
+		}
+	]
+}

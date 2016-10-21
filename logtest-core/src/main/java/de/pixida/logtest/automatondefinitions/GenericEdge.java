@@ -7,9 +7,13 @@
 
 package de.pixida.logtest.automatondefinitions;
 
+import org.apache.commons.lang3.StringUtils;
+
 public class GenericEdge implements IEdgeDefinition
 {
     private final String id;
+    private String name;
+    private String description;
 
     private final INodeDefinition source;
     private final INodeDefinition destination;
@@ -25,13 +29,21 @@ public class GenericEdge implements IEdgeDefinition
     private ITimeInterval timeIntervalSinceAutomatonStart;
     private ITimeInterval timeIntervalForEvent;
     private String channel;
-    private String comment;
+
+    private String nameForLogging;
 
     public GenericEdge(final String aId, final INodeDefinition aSource, final INodeDefinition aDestination)
     {
         this.id = aId;
         this.source = aSource;
         this.destination = aDestination;
+        this.createNameForLogging();
+    }
+
+    @Override
+    public String getId()
+    {
+        return this.id;
     }
 
     @Override
@@ -168,20 +180,53 @@ public class GenericEdge implements IEdgeDefinition
     }
 
     @Override
-    public String getComment()
+    public String getName()
     {
-        return this.comment;
+        return this.name;
     }
 
-    public void setComment(final String value)
+    public void setName(final String value)
     {
-        this.comment = value;
+        this.name = value;
+        this.createNameForLogging();
+    }
+
+    @Override
+    public String getDescription()
+    {
+        return this.description;
+    }
+
+    public void setDescription(final String value)
+    {
+        this.description = value;
+    }
+
+    private void createNameForLogging()
+    {
+        if (StringUtils.isNotBlank(this.name))
+        {
+            this.nameForLogging = this.replaceWhitespacesAgainstSpace(this.name);
+        }
+        else if (StringUtils.isNotBlank(this.id))
+        {
+            this.nameForLogging = this.replaceWhitespacesAgainstSpace(this.id);
+        }
+        else
+        {
+            this.nameForLogging = "";
+        }
+    }
+
+    private String replaceWhitespacesAgainstSpace(final String value)
+    {
+        return value.replaceAll("\\s", " ");
     }
 
     // Just for logging output / no business use
     @Override
     public String toString()
     {
-        return this.id;
+        return this.nameForLogging;
     }
 }

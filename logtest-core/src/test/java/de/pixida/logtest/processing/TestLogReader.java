@@ -36,6 +36,12 @@ public class TestLogReader implements ILogReader
     }
 
     @Override
+    public JSONObject getSettingsForConfigurationFile()
+    {
+        return null;
+    }
+
+    @Override
     public void open()
     {
         this.entry = 0;

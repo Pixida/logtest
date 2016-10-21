@@ -13,6 +13,8 @@ public interface ILogReader
 {
     void overwriteCurrentSettingsWithSettingsInConfigurationFile(JSONObject configurationFile);
 
+    JSONObject getSettingsForConfigurationFile();
+
     void open();
 
     ILogEntry getNextEntry();

@@ -24,6 +24,14 @@ public class GenericLogReaderTest
     private static final long TWO = 2;
     private static final long THREE = 3;
 
+    private static final String TEST_PATTERN = "[0-9]+";
+    private static final Integer TEST_HEADLINE_PATTERN_INDEX_OF_TIMESTAMP = 100;
+    private static final Integer TEST_HEADLINE_PATTERN_INDEX_OF_CHANNEL = 150;
+    private static final Boolean TEST_TRIM_PAYLOAD = false;
+    private static final Boolean TEST_REMOVE_EMPTY_PAYLOAD_LINES_FROM_MULTILINE_ENTRY = false;
+    private static final HandlingOfNonHeadlineLines TEST_HANDLING_OF_NON_HEADLINE_LINES = GenericLogReader.HandlingOfNonHeadlineLines.ASSUME_LAST_TIMESTAMP;
+    private static final String TEST_LOG_FILE_CHARSET = "ISO-8859-1";
+
     private GenericLogReader lr;
 
     public GenericLogReaderTest()
@@ -174,7 +182,7 @@ public class GenericLogReaderTest
     }
 
     @Test
-    public void testEmptyMultilineLinesAreNotRemovedByDefault()
+    public void testEmptyMultilineEntryLinesCanBeNotRemoved()
     {
         final String log = "1 C Entry 1\n\n"
             + "Entry 2\n";
@@ -183,12 +191,13 @@ public class GenericLogReaderTest
         this.lr.setHeadlinePatternIndexOfTimestamp(1 + 1);
         this.lr.setHeadlinePatternIndexOfChannel(1 + 1 + 1);
         this.lr.setHandlingOfNonHeadlineLines(HandlingOfNonHeadlineLines.CREATE_MULTILINE_ENTRY);
+        this.lr.setRemoveEmptyPayloadLinesFromMultilineEntry(false);
         this.checkNextResult(ONE, ONE, "C", "Entry 1\n\nEntry 2");
         this.assumeNoMoreEntries();
     }
 
     @Test
-    public void testEmptyMultilineLinesCanBeRemoved()
+    public void testEmptyMultilineEntryLinesCanBeRemoved()
     {
         final String log = "1 C Entry 1\n\n"
             + "Entry 2\n";
@@ -288,42 +297,67 @@ public class GenericLogReaderTest
     @Test
     public void testOverwritingConfiguration()
     {
-        final String log = "";
-        this.initLogReader(log);
-        final JSONObject configuration = new JSONObject();
-        final String setHeadlinePattern = "[0-9]+";
-        configuration.put("headlinePattern", setHeadlinePattern);
-        final Integer setHeadlinePatternIndexOfTimestamp = 100;
-        configuration.put("headlinePatternIndexOfTimestamp", setHeadlinePatternIndexOfTimestamp);
-        final Integer setHeadlinePatternIndexOfChannel = 150;
-        configuration.put("headlinePatternIndexOfChannel", setHeadlinePatternIndexOfChannel);
-        final boolean setTrimPayload = true;
-        configuration.put("trimPayload", setTrimPayload);
-        final boolean setRemoveEmptyPayloadLinesFromMultilineEntry = true;
-        configuration.put("removeEmptyPayloadLinesFromMultilineEntry", setRemoveEmptyPayloadLinesFromMultilineEntry);
-        final HandlingOfNonHeadlineLines setHandlingOfNonHeadlineLines = GenericLogReader.HandlingOfNonHeadlineLines.ASSUME_LAST_TIMESTAMP;
-        configuration.put("handlingOfNonHeadlineLines", setHandlingOfNonHeadlineLines.toString());
-        final String setLogFileCharset = "ISO-8859-1";
-        configuration.put("logFileCharset", setLogFileCharset);
+        this.initLogReader("");
 
-        this.lr.overwriteCurrentSettingsWithSettingsInConfigurationFile(configuration);
+        this.lr.overwriteCurrentSettingsWithSettingsInConfigurationFile(this.createTestConfiguationJsonConfig());
 
+        this.validateCurrentConfigurationDoesNotEqualDefaultConfiguration();
+        this.validateTestConfigurationIsSet();
+    }
+
+    @Test
+    public void testExportingConfiguration()
+    {
+        this.initLogReader("");
+
+        this.lr.overwriteCurrentSettingsWithSettingsInConfigurationFile(this.createTestConfiguationJsonConfig());
+        final JSONObject jsonConfiguration = this.lr.getSettingsForConfigurationFile();
+
+        this.initLogReader("");
+        this.lr.overwriteCurrentSettingsWithSettingsInConfigurationFile(jsonConfiguration);
+
+        this.validateTestConfigurationIsSet();
+    }
+
+    /*
+     * Use this method to see if all configuration items are really applied. This requires that the test configuration does not equal the
+     * default configuration.
+     */
+    private void validateCurrentConfigurationDoesNotEqualDefaultConfiguration()
+    {
         final GenericLogReader virgin = new GenericLogReader(new BufferedReader(new StringReader("")));
-        Assert.assertTrue(!setHeadlinePattern.equals(virgin.getHeadlinePattern()));
-        Assert.assertTrue(!setHeadlinePatternIndexOfTimestamp.equals(virgin.getHeadlinePatternIndexOfTimestamp()));
-        Assert.assertTrue(!setHeadlinePatternIndexOfChannel.equals(virgin.getHeadlinePatternIndexOfChannel()));
-        Assert.assertTrue(setTrimPayload != virgin.getTrimPayload());
-        Assert.assertTrue(setRemoveEmptyPayloadLinesFromMultilineEntry != virgin.getRemoveEmptyPayloadLinesFromMultilineEntry());
-        Assert.assertTrue(!setHandlingOfNonHeadlineLines.equals(virgin.getHandlingOfNonHeadlineLines()));
-        Assert.assertTrue(!setLogFileCharset.equals(virgin.getLogFileCharset()));
+        Assert.assertTrue(!TEST_PATTERN.equals(virgin.getHeadlinePattern()));
+        Assert.assertTrue(!TEST_HEADLINE_PATTERN_INDEX_OF_TIMESTAMP.equals(virgin.getHeadlinePatternIndexOfTimestamp()));
+        Assert.assertTrue(!TEST_HEADLINE_PATTERN_INDEX_OF_CHANNEL.equals(virgin.getHeadlinePatternIndexOfChannel()));
+        Assert.assertTrue(TEST_TRIM_PAYLOAD != virgin.getTrimPayload());
+        Assert.assertTrue(TEST_REMOVE_EMPTY_PAYLOAD_LINES_FROM_MULTILINE_ENTRY != virgin.getRemoveEmptyPayloadLinesFromMultilineEntry());
+        Assert.assertTrue(!TEST_HANDLING_OF_NON_HEADLINE_LINES.equals(virgin.getHandlingOfNonHeadlineLines()));
+        Assert.assertTrue(!TEST_LOG_FILE_CHARSET.equals(virgin.getLogFileCharset()));
+    }
 
-        Assert.assertEquals(setHeadlinePattern, this.lr.getHeadlinePattern());
-        Assert.assertEquals(setHeadlinePatternIndexOfTimestamp, this.lr.getHeadlinePatternIndexOfTimestamp());
-        Assert.assertEquals(setHeadlinePatternIndexOfChannel, this.lr.getHeadlinePatternIndexOfChannel());
-        Assert.assertEquals(setTrimPayload, this.lr.getTrimPayload());
-        Assert.assertEquals(setRemoveEmptyPayloadLinesFromMultilineEntry, this.lr.getRemoveEmptyPayloadLinesFromMultilineEntry());
-        Assert.assertEquals(setHandlingOfNonHeadlineLines, this.lr.getHandlingOfNonHeadlineLines());
-        Assert.assertEquals(Charset.forName(setLogFileCharset), this.lr.getLogFileCharset());
+    private JSONObject createTestConfiguationJsonConfig()
+    {
+        final JSONObject configuration = new JSONObject();
+        configuration.put(GenericLogReaderJsonKey.HEADLINE_PATTERN.getKey(), TEST_PATTERN);
+        configuration.put(GenericLogReaderJsonKey.HEADLINE_PATTERN_INDEX_OF_TIMESTAMP.getKey(), TEST_HEADLINE_PATTERN_INDEX_OF_TIMESTAMP);
+        configuration.put(GenericLogReaderJsonKey.HEADLINE_PATTERN_INDEX_OF_CHANNEL.getKey(), TEST_HEADLINE_PATTERN_INDEX_OF_CHANNEL);
+        configuration.put(GenericLogReaderJsonKey.TRIM_PAYLOAD.getKey(), TEST_TRIM_PAYLOAD);
+        configuration.put(GenericLogReaderJsonKey.REMOVE_EMPTY_PAYLOAD_LINES_FROM_MULTILINE_ENTRY.getKey(),
+            TEST_REMOVE_EMPTY_PAYLOAD_LINES_FROM_MULTILINE_ENTRY);
+        configuration.put(GenericLogReaderJsonKey.HANDLING_OF_NON_HEADLINE_LINES.getKey(), TEST_HANDLING_OF_NON_HEADLINE_LINES.toString());
+        configuration.put(GenericLogReaderJsonKey.LOG_FILE_CHARSET.getKey(), TEST_LOG_FILE_CHARSET);
+        return configuration;
+    }
+
+    private void validateTestConfigurationIsSet()
+    {
+        Assert.assertEquals(TEST_PATTERN, this.lr.getHeadlinePattern());
+        Assert.assertEquals(TEST_HEADLINE_PATTERN_INDEX_OF_TIMESTAMP, this.lr.getHeadlinePatternIndexOfTimestamp());
+        Assert.assertEquals(TEST_HEADLINE_PATTERN_INDEX_OF_CHANNEL, this.lr.getHeadlinePatternIndexOfChannel());
+        Assert.assertEquals(TEST_TRIM_PAYLOAD, this.lr.getTrimPayload());
+        Assert.assertEquals(TEST_REMOVE_EMPTY_PAYLOAD_LINES_FROM_MULTILINE_ENTRY, this.lr.getRemoveEmptyPayloadLinesFromMultilineEntry());
+        Assert.assertEquals(TEST_HANDLING_OF_NON_HEADLINE_LINES, this.lr.getHandlingOfNonHeadlineLines());
+        Assert.assertEquals(Charset.forName(TEST_LOG_FILE_CHARSET), this.lr.getLogFileCharset());
     }
 
     private void initLogReader(final String log)

@@ -12,7 +12,6 @@ import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.EnumSet;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -90,12 +89,12 @@ public class JobExecutorTest
     public void runSomeEvaluationWithSimultaneousEvaluatedSucceedingAndNonSucceedingAndInvalidAutomatons()
     {
         final TestAutomaton ta1 = new TestAutomaton();
-        final GenericNode initial1 = ta1.createNode().withFlags(EnumSet.of(INodeDefinition.Flag.IS_INITIAL)).get();
-        final GenericNode success1 = ta1.createNode().withFlags(EnumSet.of(INodeDefinition.Flag.IS_SUCCESS)).get();
+        final GenericNode initial1 = ta1.createNode().withType(INodeDefinition.Type.INITIAL).get();
+        final GenericNode success1 = ta1.createNode().withType(INodeDefinition.Type.SUCCESS).get();
         ta1.createEdge(initial1, success1).withRegExp("HELLO");
 
         final TestAutomaton ta2 = new TestAutomaton();
-        final GenericNode initial2 = ta2.createNode().withFlags(EnumSet.of(INodeDefinition.Flag.IS_INITIAL)).get();
+        final GenericNode initial2 = ta2.createNode().withType(INodeDefinition.Type.INITIAL).get();
         final GenericNode middle2 = ta2.createNode().get();
         final GenericNode success2 = ta2.createNode().get();
         ta2.createEdge(initial2, middle2).withRegExp("H");
@@ -143,7 +142,7 @@ public class JobExecutorTest
     public void testCountingEventsByChannelWorks()
     {
         final TestAutomaton ta = new TestAutomaton();
-        final GenericNode node1 = ta.createNode().withFlags(EnumSet.of(INodeDefinition.Flag.IS_INITIAL)).get();
+        final GenericNode node1 = ta.createNode().withType(INodeDefinition.Type.INITIAL).get();
         final GenericNode node2 = ta.createNode().get();
         ta.createEdge(node1, node2).withTriggerAlways();
 

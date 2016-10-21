@@ -7,7 +7,10 @@
 
 package de.pixida.logtest.automatondefinitions;
 
+import java.util.Arrays;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 public enum JsonTimeUnit
 {
@@ -38,7 +41,7 @@ public enum JsonTimeUnit
         return this.timeUnit;
     }
 
-    static String convertTimeUnitToString(final TimeUnit value)
+    static public String convertTimeUnitToString(final TimeUnit value)
     {
         // This is O(# defined constants in this enumeration); should be acceptable for now.
         for (final JsonTimeUnit v : values())
@@ -49,5 +52,15 @@ public enum JsonTimeUnit
             }
         }
         return null;
+    }
+
+    static public List<String> getListOfPossibleNames()
+    {
+        return Arrays.stream(values()).map(entry -> entry.getName()).collect(Collectors.toList());
+    }
+
+    static public TimeUnit indexToTimeUnit(final int value)
+    {
+        return values()[value].getTimeUnit();
     }
 }

@@ -8,9 +8,7 @@
 package de.pixida.logtest.automatondefinitions;
 
 import java.util.ArrayList;
-import java.util.EnumSet;
 import java.util.List;
-import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 public class TestAutomaton implements IAutomatonDefinition
@@ -21,7 +19,7 @@ public class TestAutomaton implements IAutomatonDefinition
     private int runningNodeId = 0;
     private int runningEdgeId = 0;
     private String onLoad;
-    private String comment;
+    private String description;
     private String scriptLanguage;
 
     public static class GenericNodeBuilder
@@ -33,9 +31,9 @@ public class TestAutomaton implements IAutomatonDefinition
             this.node = aNode;
         }
 
-        public GenericNodeBuilder withFlags(final Set<INodeDefinition.Flag> flags)
+        public GenericNodeBuilder withType(final INodeDefinition.Type value)
         {
-            this.node.setFlags(flags);
+            this.node.setType(value);
             return this;
         }
 
@@ -195,9 +193,9 @@ public class TestAutomaton implements IAutomatonDefinition
         // Empty constructor needed by checkstyle
     }
 
-    public TestAutomaton withComment(final String value)
+    public TestAutomaton withDescription(final String value)
     {
-        this.comment = value;
+        this.description = value;
         return this;
     }
 
@@ -220,8 +218,7 @@ public class TestAutomaton implements IAutomatonDefinition
 
     public GenericNodeBuilder createNode(final String id)
     {
-        final GenericNode newNode = new GenericNode(id == null ? String.valueOf(this.runningNodeId++) : id,
-            EnumSet.noneOf(INodeDefinition.Flag.class));
+        final GenericNode newNode = new GenericNode(id == null ? String.valueOf(this.runningNodeId++) : id);
         this.genericNodes.add(newNode);
         final GenericNodeBuilder builder = new GenericNodeBuilder(newNode);
         return builder;
@@ -272,9 +269,9 @@ public class TestAutomaton implements IAutomatonDefinition
     }
 
     @Override
-    public String getComment()
+    public String getDescription()
     {
-        return this.comment;
+        return this.description;
     }
 
     @Override

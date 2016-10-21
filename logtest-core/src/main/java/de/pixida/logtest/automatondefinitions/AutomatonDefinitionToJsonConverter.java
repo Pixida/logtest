@@ -15,7 +15,6 @@ import org.apache.commons.lang3.Validate;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-import de.pixida.logtest.automatondefinitions.IEdgeDefinition.RequiredConditions;
 import de.pixida.logtest.logreaders.ILogEntry;
 
 public abstract class AutomatonDefinitionToJsonConverter
@@ -24,7 +23,7 @@ public abstract class AutomatonDefinitionToJsonConverter
     {
         final JSONObject root = new JSONObject();
         putValueIfNotNull(root, JsonKey.ROOT_ONLOAD, automaton.getOnLoad());
-        putValueIfNotNull(root, JsonKey.ROOT_COMMENT, automaton.getComment());
+        putValueIfNotNull(root, JsonKey.ROOT_DESCRIPTION, automaton.getDescription());
         putValueIfNotNull(root, JsonKey.ROOT_SCRIPT_LANGUAGE, automaton.getScriptLanguage());
         root.put(JsonKey.ROOT_NODES.getKey(), convertNodes(automaton.getNodes(), automaton.getEdges()));
         return root;
@@ -57,14 +56,13 @@ public abstract class AutomatonDefinitionToJsonConverter
     private static JSONObject convertNode(final INodeDefinition definedNode)
     {
         final JSONObject node = new JSONObject();
-        node.put(JsonKey.NODE_ID.getKey(), definedNode.toString());
-        putTrueValueIfTrue(node, JsonKey.NODE_INITIAL, definedNode.getFlags().contains(INodeDefinition.Flag.IS_INITIAL));
-        putTrueValueIfTrue(node, JsonKey.NODE_SUCCESS, definedNode.getFlags().contains(INodeDefinition.Flag.IS_SUCCESS));
-        putTrueValueIfTrue(node, JsonKey.NODE_FAILURE, definedNode.getFlags().contains(INodeDefinition.Flag.IS_FAILURE));
+        node.put(JsonKey.NODE_ID.getKey(), definedNode.getId());
+        putValueIfNotNull(node, JsonKey.NODE_NAME, definedNode.getName());
+        putValueIfNotNull(node, JsonKey.NODE_DESCRIPTION, definedNode.getDescription());
+        putEnumValueIfNotNull(node, JsonKey.NODE_TYPE, definedNode.getType());
         putValueIfNotNull(node, JsonKey.NODE_ON_ENTER, definedNode.getOnEnter());
         putValueIfNotNull(node, JsonKey.NODE_ON_LEAVE, definedNode.getOnLeave());
         putValueIfNotNull(node, JsonKey.NODE_SUCCESS_CHECK_EXP, definedNode.getSuccessCheckExp());
-        putValueIfNotNull(node, JsonKey.NODE_COMMENT, definedNode.getComment());
         putTrueValueIfTrue(node, JsonKey.NODE_WAIT, definedNode.getWait());
         return node;
     }
@@ -72,32 +70,16 @@ public abstract class AutomatonDefinitionToJsonConverter
     private static JSONObject convertEdge(final IEdgeDefinition definedOutgoingEdge)
     {
         final JSONObject edge = new JSONObject();
-        edge.put(JsonKey.EDGE_ID.getKey(), definedOutgoingEdge.toString());
-        edge.put(JsonKey.EDGE_DESTINATION.getKey(), definedOutgoingEdge.getDestination().toString());
+        edge.put(JsonKey.EDGE_ID.getKey(), definedOutgoingEdge.getId());
+        putValueIfNotNull(edge, JsonKey.EDGE_NAME, definedOutgoingEdge.getName());
+        putValueIfNotNull(edge, JsonKey.EDGE_DESCRIPTION, definedOutgoingEdge.getDescription());
+        edge.put(JsonKey.EDGE_DESTINATION.getKey(), definedOutgoingEdge.getDestination().getId());
         putValueIfNotNull(edge, JsonKey.EDGE_ON_WALK, definedOutgoingEdge.getOnWalk());
-        putValueIfNotNull(edge, JsonKey.EDGE_COMMENT, definedOutgoingEdge.getComment());
         putValueIfNotNull(edge, JsonKey.EDGE_REG_EXP, definedOutgoingEdge.getRegExp());
         putValueIfNotNull(edge, JsonKey.EDGE_CHECK_EXP, definedOutgoingEdge.getCheckExp());
         putTrueValueIfNotNullAndTrue(edge, JsonKey.EDGE_TRIGGER_ALWAYS, definedOutgoingEdge.getTriggerAlways());
         putTrueValueIfNotNullAndTrue(edge, JsonKey.EDGE_TRIGGER_ON_EOF, definedOutgoingEdge.getTriggerOnEof());
-        if (definedOutgoingEdge.getRequiredConditions() != null)
-        {
-            String requiredConditionsValue = null;
-            if (definedOutgoingEdge.getRequiredConditions() == RequiredConditions.ONE)
-            {
-                requiredConditionsValue = JsonKey.EDGE_REQUIRED_CONDITIONS_ONE.getKey();
-            }
-            else if (definedOutgoingEdge.getRequiredConditions() == RequiredConditions.ALL)
-            {
-                requiredConditionsValue = JsonKey.EDGE_REQUIRED_CONDITIONS_ALL.getKey();
-            }
-            else
-            {
-                throw new RuntimeException("Internal error: Cannot save value for required conditions - value missing for "
-                    + definedOutgoingEdge.getRequiredConditions());
-            }
-            edge.put(JsonKey.EDGE_REQUIRED_CONDITIONS.getKey(), requiredConditionsValue);
-        }
+        putEnumValueIfNotNull(edge, JsonKey.EDGE_REQUIRED_CONDITIONS, definedOutgoingEdge.getRequiredConditions());
         putTimeInterval(edge, JsonKey.EDGE_TIME_INTERVAL_SINCE_LAST_MICROTRANSITION,
             definedOutgoingEdge.getTimeIntervalSinceLastMicrotransition());
         putTimeInterval(edge, JsonKey.EDGE_TIME_INTERVAL_SINCE_LAST_TRANSITION, definedOutgoingEdge.getTimeIntervalSinceLastTransition());
@@ -108,6 +90,16 @@ public abstract class AutomatonDefinitionToJsonConverter
             edge.put(JsonKey.EDGE_CHANNEL.getKey(), definedOutgoingEdge.getChannel());
         }
         return edge;
+    }
+
+    private static <E extends Enum<E>> void putEnumValueIfNotNull(final JSONObject jsonObject, final JsonKey jsonKey, final E value)
+    {
+        Validate.notNull(jsonObject);
+        Validate.notNull(jsonKey);
+        if (value != null)
+        {
+            jsonObject.put(jsonKey.getKey(), value.toString());
+        }
     }
 
     private static void putTimeInterval(final JSONObject edge, final JsonKey timeIntervalKey, final ITimeInterval definedTimeInterval)

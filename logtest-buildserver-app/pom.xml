@@ -11,19 +11,19 @@
 	<parent>
 		<groupId>de.pixida.logtest</groupId>
 		<artifactId>logtest</artifactId>
-		<version>1.0.2</version>
+		<version>1.0.3</version>
 	</parent>
 	
 	<dependencies>
 		<dependency>
 			<groupId>de.pixida.logtest</groupId>
 			<artifactId>logtest-core</artifactId>
-			<version>1.0.0</version>
+			<version>1.0.3</version>
 		</dependency>
 		<dependency>
 			<groupId>de.pixida.logtest</groupId>
 			<artifactId>logtest-core</artifactId>
-			<version>1.0.0</version>
+			<version>1.0.3</version>
 			<type>test-jar</type>
 			<scope>test</scope>
 		</dependency>
@@ -63,30 +63,6 @@
 						<phase>package</phase>
 						<goals>
 							<goal>single</goal>
-						</goals>
-					</execution>
-				</executions>
-			</plugin>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-source-plugin</artifactId>
-				<executions>
-					<execution>
-						<id>attach-sources</id>
-						<goals>
-							<goal>jar</goal>
-						</goals>
-					</execution>
-				</executions>
-			</plugin>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-javadoc-plugin</artifactId>
-				<executions>
-					<execution>
-						<id>attach-javadocs</id>
-						<goals>
-							<goal>jar</goal>
 						</goals>
 					</execution>
 				</executions>

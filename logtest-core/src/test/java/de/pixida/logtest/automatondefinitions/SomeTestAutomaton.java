@@ -9,31 +9,37 @@ package de.pixida.logtest.automatondefinitions;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.EnumSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.BooleanUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.maven.artifact.versioning.ComparableVersion;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.junit.Assert;
 
 abstract class SomeTestAutomaton
 {
-    public final static String TEST_FILE_NAME = "test-automaton.json";
+    public final static String TEST_FILE_NAME = "test-automaton%s.json";
 
     static JsonAutomatonDefinition getAutomatonDefinition()
     {
-        return new JsonAutomatonDefinition(getTestAutomatonFileResource());
+        return new JsonAutomatonDefinition(getTestAutomatonFileResource(""));
+    }
+
+    static JsonAutomatonDefinition getAutomatonDefinition(final String version)
+    {
+        return new JsonAutomatonDefinition(getTestAutomatonFileResource(version));
     }
 
     static JSONObject getRawConfigJson()
     {
         try
         {
-            return new JSONObject(FileUtils.readFileToString(getTestAutomatonFileResource(), JsonAutomatonDefinition.EXPECTED_CHARSET));
+            return new JSONObject(FileUtils.readFileToString(getTestAutomatonFileResource(""), JsonAutomatonDefinition.EXPECTED_CHARSET));
         }
         catch (JSONException | IOException e)
         {
@@ -41,65 +47,99 @@ abstract class SomeTestAutomaton
         }
     }
 
+    static String getFileName(final String version)
+    {
+        return String.format(TEST_FILE_NAME, StringUtils.isEmpty(version) ? "" : "-" + version);
+    }
+
+    static String getFileName()
+    {
+        return getFileName("");
+    }
+
     static void verifyAutomatonDefinition(final IAutomatonDefinition testAutomaton)
+    {
+        verifyAutomatonDefinition(testAutomaton, null);
+    }
+
+    static void verifyAutomatonDefinition(final IAutomatonDefinition testAutomaton, final String version)
     {
         testAutomaton.load();
         final List<? extends INodeDefinition> nodes = testAutomaton.getNodes();
         final List<? extends IEdgeDefinition> edges = testAutomaton.getEdges();
         Assert.assertEquals("x = 1;", testAutomaton.getOnLoad());
-        Assert.assertEquals("test automaton", testAutomaton.getComment());
+        Assert.assertEquals("test automaton", testAutomaton.getDescription());
         Assert.assertEquals("Python", testAutomaton.getScriptLanguage());
-        checkNodes(nodes);
-        checkEdges(nodes, edges);
+        checkNodes(nodes, version);
+        checkEdges(nodes, edges, version);
     }
 
-    private static File getTestAutomatonFileResource()
+    private static File getTestAutomatonFileResource(final String version)
     {
-        return new File(SomeTestAutomaton.class.getResource(TEST_FILE_NAME).getFile());
+        return new File(SomeTestAutomaton.class.getResource(getFileName(version)).getFile());
     }
 
-    private static void checkNodes(final List<? extends INodeDefinition> nodes)
+    private static void checkNodes(final List<? extends INodeDefinition> nodes, final String version)
     {
         int i = 0;
-        Assert.assertEquals("start", nodes.get(i).toString());
-        Assert.assertEquals(EnumSet.of(INodeDefinition.Flag.IS_INITIAL), nodes.get(i).getFlags());
+        Assert.assertEquals("start", nodes.get(i).getId());
+        checkInventedAttributeAfterVersion(nodes.get(i).getName(), "start_name", "1.0.2", version);
+        Assert.assertEquals(INodeDefinition.Type.INITIAL, nodes.get(i).getType());
         Assert.assertEquals("x = 10", nodes.get(i).getOnEnter());
         Assert.assertEquals("x++;", nodes.get(i).getOnLeave());
         Assert.assertFalse(nodes.get(i).getWait());
-        Assert.assertEquals("node_comment", nodes.get(i).getComment());
+        Assert.assertEquals("node_description", nodes.get(i).getDescription());
         i++;
-        Assert.assertEquals("failing", nodes.get(i).toString());
-        Assert.assertEquals(EnumSet.of(INodeDefinition.Flag.IS_FAILURE), nodes.get(i).getFlags());
+        Assert.assertEquals("failing", nodes.get(i).getId());
+        checkInventedAttributeAfterVersion(nodes.get(i).getName(), "failing_name", "1.0.2", version);
+        Assert.assertEquals(INodeDefinition.Type.FAILURE, nodes.get(i).getType());
         Assert.assertNull(nodes.get(i).getOnEnter());
         Assert.assertNull(nodes.get(i).getOnLeave());
         Assert.assertTrue(nodes.get(i).getWait());
-        Assert.assertNull(nodes.get(i).getComment());
+        Assert.assertNull(nodes.get(i).getDescription());
         i++;
-        Assert.assertEquals("success", nodes.get(i).toString());
-        Assert.assertEquals(EnumSet.of(INodeDefinition.Flag.IS_SUCCESS), nodes.get(i).getFlags());
+        Assert.assertEquals("success", nodes.get(i).getId());
+        checkInventedAttributeAfterVersion(nodes.get(i).getName(), "success_name", "1.0.2", version);
+        Assert.assertEquals(INodeDefinition.Type.SUCCESS, nodes.get(i).getType());
         Assert.assertNotNull(nodes.get(i).getSuccessCheckExp());
         Assert.assertNull(nodes.get(i).getOnEnter());
         Assert.assertNull(nodes.get(i).getOnLeave());
         Assert.assertFalse(nodes.get(i).getWait());
-        Assert.assertNull(nodes.get(i).getComment());
+        Assert.assertNull(nodes.get(i).getDescription());
         i++;
-        Assert.assertEquals("dummy", nodes.get(i).toString());
-        Assert.assertEquals(EnumSet.noneOf(INodeDefinition.Flag.class), nodes.get(i).getFlags());
+        Assert.assertEquals("dummy", nodes.get(i).getId());
+        checkInventedAttributeAfterVersion(nodes.get(i).getName(), "dummy_name", "1.0.2", version);
+        Assert.assertNull(nodes.get(i).getType());
         Assert.assertNull(nodes.get(i).getOnEnter());
         Assert.assertNull(nodes.get(i).getOnLeave());
-        Assert.assertNull(nodes.get(i).getComment());
+        Assert.assertNull(nodes.get(i).getDescription());
 
         Assert.assertEquals(++i, nodes.size());
     }
 
-    private static void checkEdges(final List<? extends INodeDefinition> nodes, final List<? extends IEdgeDefinition> edges)
+    private static void checkInventedAttributeAfterVersion(final String value, final String expectedValue,
+        final String afterVersion, final String definitionVersion)
+    {
+        if (untilVersion(afterVersion, definitionVersion))
+        {
+            Assert.assertNull(value);
+        }
+        else
+        {
+            Assert.assertEquals(expectedValue, value);
+        }
+    }
+
+    private static void checkEdges(final List<? extends INodeDefinition> nodes, final List<? extends IEdgeDefinition> edges,
+        final String version)
     {
         checkEdgesLinkNodesCorrectly(nodes, edges);
 
         final Iterator<? extends IEdgeDefinition> edgesIt = edges.iterator();
 
         IEdgeDefinition edge = edgesIt.next();
-        Assert.assertEquals("to_failing", edge.toString());
+        Assert.assertEquals("to_failing", edge.getId());
+        checkInventedAttributeAfterVersion(edge.getName(), "to_failing_name", "1.0.2", version);
         Assert.assertNull(edge.getRegExp());
         Assert.assertEquals("x % 2 == 0", edge.getCheckExp());
         Assert.assertNull(edge.getTriggerAlways());
@@ -113,10 +153,11 @@ abstract class SomeTestAutomaton
         Assert.assertNull(edge.getTimeIntervalSinceLastTransition());
         Assert.assertNull(edge.getTimeIntervalSinceAutomatonStart());
         Assert.assertNull(edge.getTimeIntervalForEvent());
-        Assert.assertEquals("edge_comment", edge.getComment());
+        Assert.assertEquals("edge_description", edge.getDescription());
 
         edge = edgesIt.next();
-        Assert.assertEquals("to_success", edge.toString());
+        Assert.assertEquals("to_success", edge.getId());
+        checkInventedAttributeAfterVersion(edge.getName(), "to_success_name", "1.0.2", version);
         Assert.assertEquals("[A-Z]*", edge.getRegExp());
         Assert.assertNull(edge.getCheckExp());
         Assert.assertNull(edge.getTriggerAlways());
@@ -128,10 +169,12 @@ abstract class SomeTestAutomaton
         Assert.assertNotNull(edge.getTimeIntervalSinceLastTransition());
         Assert.assertNotNull(edge.getTimeIntervalSinceAutomatonStart());
         Assert.assertNotNull(edge.getTimeIntervalForEvent());
-        Assert.assertNull(edge.getComment());
+        Assert.assertNull(edge.getDescription());
 
         edge = edgesIt.next();
-        Assert.assertEquals("several_criteria", edge.toString());
+        Assert.assertEquals("several_criteria", edge.getId());
+        Assert.assertNull(edge.getName());
+        Assert.assertNull(edge.getDescription());
         Assert.assertEquals("[^A-Z]", edge.getRegExp());
         Assert.assertNull(edge.getCheckExp());
         Assert.assertTrue(edge.getTriggerAlways());
@@ -143,7 +186,7 @@ abstract class SomeTestAutomaton
         Assert.assertNull(edge.getTimeIntervalSinceLastTransition());
         Assert.assertNull(edge.getTimeIntervalSinceAutomatonStart());
         Assert.assertNull(edge.getTimeIntervalForEvent());
-        Assert.assertNull(edge.getComment());
+        Assert.assertNull(edge.getDescription());
 
         Assert.assertFalse(edgesIt.hasNext());
     }
@@ -182,5 +225,17 @@ abstract class SomeTestAutomaton
         Assert.assertEquals(TimeUnit.MINUTES, edge.getTimeIntervalSinceLastMicrotransition().getMax().getUnit());
         Assert.assertEquals("20", edge.getTimeIntervalSinceLastMicrotransition().getMax().getValue());
         Assert.assertFalse(edge.getTimeIntervalSinceLastMicrotransition().getMax().isInclusive());
+    }
+
+    private static boolean untilVersion(final String untilVersion, final String currentVersion)
+    {
+        if (currentVersion == null)
+        {
+            // Current version is trunk => We're never "until version .."
+            return false;
+        }
+        final ComparableVersion u = new ComparableVersion(untilVersion);
+        final ComparableVersion c = new ComparableVersion(currentVersion);
+        return c.compareTo(u) != 1;
     }
 }

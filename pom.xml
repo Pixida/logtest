@@ -5,7 +5,7 @@
 
 	<groupId>de.pixida.logtest</groupId>
 	<artifactId>logtest</artifactId>
-	<version>1.0.2</version>
+	<version>1.0.3</version>
 	<name>Logtest</name>
 	<description>A toolset for running finite automatons on log files for module and integration testing.</description>
 	<url>https://github.com/Pixida/logtest</url>
@@ -42,6 +42,7 @@
 	<modules>
 		<module>logtest-core</module>
 		<module>logtest-buildserver-app</module>
+		<module>logtest-designer</module>
 	</modules>
 
 	<properties>
@@ -103,6 +104,34 @@
 					</includes>
 					<enableAssertions>true</enableAssertions>
 				</configuration>
+			</plugin>
+			
+			<!-- Generate sources and javadoc packages -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-source-plugin</artifactId>
+				<version>3.0.1</version>
+				<executions>
+					<execution>
+						<id>attach-sources</id>
+						<goals>
+							<goal>jar</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-javadoc-plugin</artifactId>
+				<version>2.10.4</version>
+				<executions>
+					<execution>
+						<id>attach-javadocs</id>
+						<goals>
+							<goal>jar</goal>
+						</goals>
+					</execution>
+				</executions>
 			</plugin>
 		</plugins>
 	</build>

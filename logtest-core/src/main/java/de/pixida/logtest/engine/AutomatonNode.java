@@ -8,9 +8,7 @@
 package de.pixida.logtest.engine;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 import org.apache.commons.lang3.Validate;
 
@@ -18,14 +16,24 @@ import de.pixida.logtest.automatondefinitions.INodeDefinition;
 
 class AutomatonNode
 {
-    public enum Flag
+    /*
+     * Why can a node only have one of those types?
+     *
+     * INITIAL + SUCCESS: Would create automatons which succeed even if no log message is processed. This behavior is usually designed by
+     * accident. If the behavior is desired, it can explicitly be defined. [INITIAL] --EOF--> [SUCCESS].
+     *
+     * INITIAL + FAILURE: Obviously contradictory.
+     *
+     * INITIAL + FAILURE: A failure node cannot have outgoing edges. This automaton would always fail.
+     */
+    enum Type
     {
-        IS_INITIAL,
-        IS_SUCCESS,
-        IS_FAILURE
+        INITIAL,
+        SUCCESS,
+        FAILURE
     }
 
-    private final Set<AutomatonNode.Flag> flags = new HashSet<>();
+    private Type type;
     private final List<AutomatonEdge> outgoingEdges = new ArrayList<>();
     private final List<AutomatonEdge> incomingEdges = new ArrayList<>();
     private EmbeddedScript onEnter;
@@ -44,14 +52,14 @@ class AutomatonNode
         this.name = value;
     }
 
-    boolean hasFlag(final AutomatonNode.Flag value)
+    Type getType()
     {
-        return this.flags.contains(value);
+        return this.type;
     }
 
-    void addFlag(final AutomatonNode.Flag value)
+    void setType(final Type value)
     {
-        this.flags.add(value);
+        this.type = value;
     }
 
     void addOutgoingEdge(final AutomatonEdge value)

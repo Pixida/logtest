@@ -37,13 +37,25 @@ public class JsonAutomatonDefinitionTest
     }
 
     @Test
+    public void testConversionFrom102To103()
+    {
+        final String testAutomatonVersion = "1.0.2";
+        final JsonAutomatonDefinition r = SomeTestAutomaton.getAutomatonDefinition(testAutomatonVersion);
+        SomeTestAutomaton.verifyAutomatonDefinition(r, testAutomatonVersion);
+    }
+
+    @Test(expected = AutomatonLoadingException.class)
+    public void test102AutomatonsAreNotReadWhenThereAreMultipleTypesSetForANode()
+    {
+        new JsonAutomatonDefinition(new File(this.getClass().getResource("automaton-with-ambigious-types-1.0.2.json").getFile())).load();
+    }
+
+    @Test
     public void testDisplayNameIsFileNameOfAutomaton()
     {
-        final JsonAutomatonDefinition r = new JsonAutomatonDefinition(
-            new File(this.getClass().getResource(SomeTestAutomaton.TEST_FILE_NAME).getFile()));
-        r.load();
-        Assert.assertEquals(SomeTestAutomaton.TEST_FILE_NAME, r.getDisplayName());
-        Assert.assertEquals(SomeTestAutomaton.TEST_FILE_NAME, r.toString());
+        final JsonAutomatonDefinition r = SomeTestAutomaton.getAutomatonDefinition();
+        Assert.assertEquals(SomeTestAutomaton.getFileName(), r.getDisplayName());
+        Assert.assertEquals(SomeTestAutomaton.getFileName(), r.toString());
     }
 
     @Test(expected = AutomatonLoadingException.class)

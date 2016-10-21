@@ -27,7 +27,7 @@ import de.pixida.logtest.automatondefinitions.AutomatonLoadingException;
 import de.pixida.logtest.automatondefinitions.IAutomatonDefinition;
 import de.pixida.logtest.automatondefinitions.IEdgeDefinition;
 import de.pixida.logtest.automatondefinitions.INodeDefinition;
-import de.pixida.logtest.engine.AutomatonNode.Flag;
+import de.pixida.logtest.engine.AutomatonNode.Type;
 import de.pixida.logtest.engine.conditions.IEventDescription;
 import de.pixida.logtest.engine.conditions.IScriptEnvironment;
 import de.pixida.logtest.logreaders.ILogEntry;
@@ -296,7 +296,7 @@ public class Automaton
     private String rejectMessage;
     private LastTransition lastTransition;
     private Event currentEvent;
-    private String comment;
+    private String description;
     private String scriptLanguage;
     private final TimingInfo timingInfo = new TimingInfo();
 
@@ -310,11 +310,11 @@ public class Automaton
         try
         {
             this.loadAutomatonFromDefinition();
-            if (this.comment != null)
+            if (this.description != null)
             {
-                this.comment = this.parameters.insertAllParameters(this.comment);
+                this.description = this.parameters.insertAllParameters(this.description);
             }
-            LOG.debug("Automaton comment: {}", this.comment);
+            LOG.debug("Automaton description: {}", this.description);
             this.checkAutomatonAndFindInitialNode();
             this.compileScripts();
         }
@@ -387,7 +387,7 @@ public class Automaton
         {
             checkNode = this.currentNode;
         }
-        if (checkNode.hasFlag(AutomatonNode.Flag.IS_FAILURE))
+        if (checkNode.getType() == Type.FAILURE)
         {
             LOG.trace("Cannot proceed because we're in a failure node");
             return false;
@@ -484,9 +484,9 @@ public class Automaton
         }
     }
 
-    String getComment()
+    public String getDescription()
     {
-        return this.comment;
+        return this.description;
     }
 
     private String asssembleFinalNodeFailureMsg(final AutomatonNode node, final NodeSuccessState failureReason)
@@ -573,7 +573,7 @@ public class Automaton
 
     private NodeSuccessState getNodeSuccessState(final AutomatonNode node)
     {
-        if (!node.hasFlag(AutomatonNode.Flag.IS_SUCCESS))
+        if (node.getType() != Type.SUCCESS)
         {
             return NodeSuccessState.NON_SUCCESS_NODE;
         }
@@ -618,32 +618,20 @@ public class Automaton
     private void checkAutomatonAndFindInitialNode()
     {
         this.checkInitialNodeExistsAndFindIt();
-        this.checkNodesAreEitherSuccessOrFailure();
         this.checkFailureNodesHaveNoOutgoingEdges();
         this.checkAllEdgesHaveAtLeastOneCondition();
         this.checkSuccessCheckExpIsOnlyAppliedToSuccessNodes();
-        this.checkIfInitialNodeIsNoSuccessNode();
-    }
-
-    private void checkIfInitialNodeIsNoSuccessNode()
-    {
-        assert this.initialNode != null;
-        if (this.initialNode.hasFlag(Flag.IS_SUCCESS))
-        {
-            throw new InvalidAutomatonDefinitionException("Initial node is declared as a success node. This is not allowed as it makes "
-                + "automatons tolerant against empty sources - which is usually not desired.");
-        }
     }
 
     private void checkSuccessCheckExpIsOnlyAppliedToSuccessNodes()
     {
-        final List<AutomatonNode> nodesWithSuccessCheckExpButNotSuccessFlag = this.nodes.stream()
-            .filter(node -> node.getSuccessCheckExp().exists() && !node.hasFlag(AutomatonNode.Flag.IS_SUCCESS))
+        final List<AutomatonNode> nodesWithSuccessCheckExpButNotSuccessType = this.nodes.stream()
+            .filter(node -> node.getSuccessCheckExp().exists() && node.getType() != Type.SUCCESS)
             .collect(Collectors.toList());
-        if (nodesWithSuccessCheckExpButNotSuccessFlag.size() > 0)
+        if (nodesWithSuccessCheckExpButNotSuccessType.size() > 0)
         {
-            throw new InvalidAutomatonDefinitionException("Nodes have success check expression, but are not flagged as succeeding nodes: "
-                + nodesWithSuccessCheckExpButNotSuccessFlag.stream().map(edge -> edge.toString()).collect(Collectors.joining(", ")));
+            throw new InvalidAutomatonDefinitionException("Nodes have success check expression, but are not of success type: "
+                + nodesWithSuccessCheckExpButNotSuccessType.stream().map(edge -> edge.toString()).collect(Collectors.joining(", ")));
         }
     }
 
@@ -663,27 +651,16 @@ public class Automaton
     {
         for (final AutomatonNode node : this.nodes)
         {
-            if (node.hasFlag(AutomatonNode.Flag.IS_FAILURE) && node.hasOutgoingEdges())
+            if (node.getType() == Type.FAILURE && node.hasOutgoingEdges())
             {
                 throw new InvalidAutomatonDefinitionException("A failure node must not have outgoing edges: " + node);
             }
         }
     }
 
-    private void checkNodesAreEitherSuccessOrFailure()
-    {
-        for (final AutomatonNode node : this.nodes)
-        {
-            if (node.hasFlag(AutomatonNode.Flag.IS_SUCCESS) && node.hasFlag(AutomatonNode.Flag.IS_FAILURE))
-            {
-                throw new InvalidAutomatonDefinitionException("Node is success and failure node at the same time: " + node);
-            }
-        }
-    }
-
     private void checkInitialNodeExistsAndFindIt()
     {
-        final List<AutomatonNode> initialNodes = this.nodes.stream().filter(node -> node.hasFlag(AutomatonNode.Flag.IS_INITIAL))
+        final List<AutomatonNode> initialNodes = this.nodes.stream().filter(node -> node.getType() == Type.INITIAL)
             .collect(Collectors.toList());
         if (initialNodes.size() > 1)
         {
@@ -715,7 +692,7 @@ public class Automaton
         final List<? extends INodeDefinition> externalNodes = this.automatonDefinition.getNodes();
         final List<? extends IEdgeDefinition> externalEdges = this.automatonDefinition.getEdges();
         this.onLoad = new EmbeddedScript(this.automatonDefinition.getOnLoad());
-        this.comment = this.automatonDefinition.getComment();
+        this.description = this.automatonDefinition.getDescription();
 
         final Map<INodeDefinition, AutomatonNode> mapNodeDefinitionsToInternalNode = new HashMap<>();
         this.loadNodesFromDefinition(externalNodes, mapNodeDefinitionsToInternalNode);
@@ -781,17 +758,17 @@ public class Automaton
             final String externalNodeName = nodeDefinition.toString();
             newNode.setName(this.parameters
                 .insertAllParameters(externalNodeName == null ? null : this.parameters.insertAllParameters(externalNodeName)));
-            if (nodeDefinition.getFlags().contains(INodeDefinition.Flag.IS_INITIAL))
+            if (nodeDefinition.getType() == INodeDefinition.Type.INITIAL)
             {
-                newNode.addFlag(AutomatonNode.Flag.IS_INITIAL);
+                newNode.setType(AutomatonNode.Type.INITIAL);
             }
-            if (nodeDefinition.getFlags().contains(INodeDefinition.Flag.IS_FAILURE))
+            if (nodeDefinition.getType() == INodeDefinition.Type.FAILURE)
             {
-                newNode.addFlag(AutomatonNode.Flag.IS_FAILURE);
+                newNode.setType(AutomatonNode.Type.FAILURE);
             }
-            if (nodeDefinition.getFlags().contains(INodeDefinition.Flag.IS_SUCCESS))
+            if (nodeDefinition.getType() == INodeDefinition.Type.SUCCESS)
             {
-                newNode.addFlag(AutomatonNode.Flag.IS_SUCCESS);
+                newNode.setType(AutomatonNode.Type.SUCCESS);
             }
             newNode.setOnEnter(new EmbeddedScript(nodeDefinition.getOnEnter()));
             newNode.setOnLeave(new EmbeddedScript(nodeDefinition.getOnLeave()));

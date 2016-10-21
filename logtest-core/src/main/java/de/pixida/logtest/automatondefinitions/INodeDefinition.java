@@ -7,8 +7,6 @@
 
 package de.pixida.logtest.automatondefinitions;
 
-import java.util.Set;
-
 public interface INodeDefinition
 {
     public enum Flag
@@ -18,7 +16,20 @@ public interface INodeDefinition
         IS_FAILURE
     }
 
-    Set<Flag> getFlags();
+    public enum Type
+    {
+        INITIAL,
+        SUCCESS,
+        FAILURE
+    }
+
+    String getName();
+
+    String getDescription();
+
+    String getId();
+
+    Type getType();
 
     String getOnEnter();
 
@@ -27,6 +38,4 @@ public interface INodeDefinition
     String getSuccessCheckExp();
 
     boolean getWait();
-
-    String getComment();
 }

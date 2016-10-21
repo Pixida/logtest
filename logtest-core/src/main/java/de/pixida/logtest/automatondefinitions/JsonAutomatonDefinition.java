@@ -15,6 +15,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
@@ -32,9 +33,10 @@ public class JsonAutomatonDefinition implements IAutomatonDefinition
 {
     public static final Charset EXPECTED_CHARSET = StandardCharsets.UTF_8;
 
+    private static final String CONFIGURATION_KEY_DEPRECATED = "Use of configuration key '{}' is deprecated! Use '{}' instead.";
+
     private static final Logger LOG = LoggerFactory.getLogger(JsonAutomatonDefinition.class);
 
-    private final String name;
     private final File jsonFile;
     private final String jsonData;
 
@@ -42,8 +44,9 @@ public class JsonAutomatonDefinition implements IAutomatonDefinition
     private final List<GenericNode> nodes = new ArrayList<>();
     private final List<GenericEdge> edges = new ArrayList<>();
     private final Map<String, GenericNode> mapIdNode = new HashMap<>();
+    private final String name;
+    private String description;
     private String onLoad;
-    private String comment;
     private String scriptLanguage;
 
     public JsonAutomatonDefinition(final File aJsonFile)
@@ -90,9 +93,9 @@ public class JsonAutomatonDefinition implements IAutomatonDefinition
     }
 
     @Override
-    public String getComment()
+    public String getDescription()
     {
-        return this.comment;
+        return this.description;
     }
 
     @Override
@@ -110,10 +113,10 @@ public class JsonAutomatonDefinition implements IAutomatonDefinition
             {
                 final String data = this.jsonData == null ? FileUtils.readFileToString(this.jsonFile, EXPECTED_CHARSET) : this.jsonData;
                 final JSONObject root = new JSONObject(data);
-                this.onLoad = root.has(JsonKey.ROOT_ONLOAD.getKey()) ? root.getString(JsonKey.ROOT_ONLOAD.getKey()) : null;
-                this.comment = root.has(JsonKey.ROOT_COMMENT.getKey()) ? root.getString(JsonKey.ROOT_COMMENT.getKey()) : null;
-                this.scriptLanguage = root.has(JsonKey.ROOT_SCRIPT_LANGUAGE.getKey()) ? root
-                    .getString(JsonKey.ROOT_SCRIPT_LANGUAGE.getKey()) : null;
+                this.description = this.loadOptStringAttributeFromJsonObjectWithDeprecatedAlternative(root, JsonKey.ROOT_DESCRIPTION,
+                    JsonKey.ROOT_DESCRIPTION_DEPRECATED);
+                this.onLoad = this.loadOptStringAttributeFromJsonObject(root, JsonKey.ROOT_ONLOAD);
+                this.scriptLanguage = this.loadOptStringAttributeFromJsonObject(root, JsonKey.ROOT_SCRIPT_LANGUAGE);
                 this.extractNodesAndEdges(root);
                 this.automatonLoaded = true;
             }
@@ -144,39 +147,64 @@ public class JsonAutomatonDefinition implements IAutomatonDefinition
         for (int i = 0; i < jsonNodes.length(); i++)
         {
             final JSONObject node = jsonNodes.getJSONObject(i);
-            final Set<INodeDefinition.Flag> flags = new HashSet<>();
-            if (node.has(JsonKey.NODE_INITIAL.getKey()) && node.getBoolean(JsonKey.NODE_INITIAL.getKey()))
+            final GenericNode newNode = new GenericNode(node.getString("id"));
+            newNode.setName(this.loadOptStringAttributeFromJsonObject(node, JsonKey.NODE_NAME));
+            newNode.setDescription(this.loadOptStringAttributeFromJsonObjectWithDeprecatedAlternative(node, JsonKey.NODE_DESCRIPTION,
+                JsonKey.NODE_DESCRIPTION_DEPRECATED));
+            newNode.setType(this.loadOptEnumAttributeFromJsonObject(node, INodeDefinition.Type.class, JsonKey.NODE_TYPE));
+            if (newNode.getType() == null)
             {
-                flags.add(INodeDefinition.Flag.IS_INITIAL);
+                newNode.setType(this.readTypeDefinedByDeprecatedFlags(node));
             }
-            if (node.has(JsonKey.NODE_FAILURE.getKey()) && node.getBoolean(JsonKey.NODE_FAILURE.getKey()))
-            {
-                flags.add(INodeDefinition.Flag.IS_FAILURE);
-            }
-            if (node.has(JsonKey.NODE_SUCCESS.getKey()) && node.getBoolean(JsonKey.NODE_SUCCESS.getKey()))
-            {
-                flags.add(INodeDefinition.Flag.IS_SUCCESS);
-            }
-            final GenericNode newNode = new GenericNode(node.getString("id"), flags);
-            this.nodes.add(newNode);
-            if (node.has(JsonKey.NODE_ON_ENTER.getKey()))
-            {
-                newNode.setOnEnter(node.getString(JsonKey.NODE_ON_ENTER.getKey()));
-            }
-            if (node.has(JsonKey.NODE_ON_LEAVE.getKey()))
-            {
-                newNode.setOnLeave(node.getString(JsonKey.NODE_ON_LEAVE.getKey()));
-            }
-            if (node.has(JsonKey.NODE_SUCCESS_CHECK_EXP.getKey()))
-            {
-                newNode.setSuccessCheckExp(node.getString(JsonKey.NODE_SUCCESS_CHECK_EXP.getKey()));
-            }
-            if (node.has(JsonKey.NODE_COMMENT.getKey()))
-            {
-                newNode.setComment(node.getString(JsonKey.NODE_COMMENT.getKey()));
-            }
+            newNode.setOnEnter(this.loadOptStringAttributeFromJsonObject(node, JsonKey.NODE_ON_ENTER));
+            newNode.setOnLeave(this.loadOptStringAttributeFromJsonObject(node, JsonKey.NODE_ON_LEAVE));
+            newNode.setSuccessCheckExp(this.loadOptStringAttributeFromJsonObject(node, JsonKey.NODE_SUCCESS_CHECK_EXP));
             newNode.setWait(node.has(JsonKey.NODE_WAIT.getKey()) ? node.getBoolean(JsonKey.NODE_WAIT.getKey()) : false);
-            this.mapIdNode.put(node.getString(JsonKey.NODE_ID.getKey()), newNode);
+            this.nodes.add(newNode);
+            this.mapIdNode.put(newNode.getId(), newNode);
+        }
+    }
+
+    private INodeDefinition.Type readTypeDefinedByDeprecatedFlags(final JSONObject node)
+    {
+        final Set<INodeDefinition.Flag> flags = new HashSet<>();
+        this.readDeprecatedFlag(node, JsonKey.NODE_INITIAL, INodeDefinition.Flag.IS_INITIAL, flags);
+        this.readDeprecatedFlag(node, JsonKey.NODE_FAILURE, INodeDefinition.Flag.IS_FAILURE, flags);
+        this.readDeprecatedFlag(node, JsonKey.NODE_SUCCESS, INodeDefinition.Flag.IS_SUCCESS, flags);
+        if (flags.size() > 1)
+        {
+            throw new AutomatonLoadingException("A node can have only one type. Use property '" + JsonKey.NODE_TYPE.getKey()
+                + "' instead of deprecated flag properties.");
+        }
+        if (flags.isEmpty())
+        {
+            return null;
+        }
+        if (flags.contains(INodeDefinition.Flag.IS_INITIAL))
+        {
+            return INodeDefinition.Type.INITIAL;
+        }
+        else if (flags.contains(INodeDefinition.Flag.IS_FAILURE))
+        {
+            return INodeDefinition.Type.FAILURE;
+        }
+        else if (flags.contains(INodeDefinition.Flag.IS_SUCCESS))
+        {
+            return INodeDefinition.Type.SUCCESS;
+        }
+        throw new RuntimeException("Internal error. No type for deprecated flag(s): " + flags.toString());
+    }
+
+    private void readDeprecatedFlag(final JSONObject node, final JsonKey key, final INodeDefinition.Flag mapToFlag,
+        final Set<INodeDefinition.Flag> flags)
+    {
+        if (node.has(key.getKey()))
+        {
+            LOG.warn(CONFIGURATION_KEY_DEPRECATED, key.getKey(), JsonKey.NODE_TYPE.getKey());
+            if (node.getBoolean(key.getKey()))
+            {
+                flags.add(mapToFlag);
+            }
         }
     }
 
@@ -200,14 +228,10 @@ public class JsonAutomatonDefinition implements IAutomatonDefinition
                         throw new AutomatonLoadingException("Destination node not found: " + destinationNodeId);
                     }
                     final GenericEdge newEdge = new GenericEdge(edge.getString(JsonKey.EDGE_ID.getKey()), source, destination);
-                    if (edge.has(JsonKey.EDGE_ON_WALK.getKey()))
-                    {
-                        newEdge.setOnWalk(edge.getString(JsonKey.EDGE_ON_WALK.getKey()));
-                    }
-                    if (edge.has(JsonKey.EDGE_COMMENT.getKey()))
-                    {
-                        newEdge.setComment(edge.getString(JsonKey.EDGE_COMMENT.getKey()));
-                    }
+                    newEdge.setName(this.loadOptStringAttributeFromJsonObject(edge, JsonKey.EDGE_NAME));
+                    newEdge.setDescription(this.loadOptStringAttributeFromJsonObjectWithDeprecatedAlternative(edge,
+                        JsonKey.EDGE_DESCRIPTION, JsonKey.EDGE_DESCRIPTION_DEPRECATED));
+                    newEdge.setOnWalk(this.loadOptStringAttributeFromJsonObject(edge, JsonKey.EDGE_ON_WALK));
                     this.retrieveEdgeConditions(edge, newEdge);
                     this.edges.add(newEdge);
                 }
@@ -217,55 +241,21 @@ public class JsonAutomatonDefinition implements IAutomatonDefinition
 
     private void retrieveEdgeConditions(final JSONObject edge, final GenericEdge newEdge)
     {
-        if (edge.has(JsonKey.EDGE_REG_EXP.getKey()))
-        {
-            newEdge.setRegExp(edge.getString(JsonKey.EDGE_REG_EXP.getKey()));
-        }
-        if (edge.has(JsonKey.EDGE_CHECK_EXP.getKey()))
-        {
-            newEdge.setCheckExp(edge.getString(JsonKey.EDGE_CHECK_EXP.getKey()));
-        }
-        if (edge.has(JsonKey.EDGE_TRIGGER_ALWAYS.getKey()))
-        {
-            newEdge.setTriggerAlways(edge.getBoolean(JsonKey.EDGE_TRIGGER_ALWAYS.getKey()));
-        }
-        if (edge.has(JsonKey.EDGE_TRIGGER_ON_EOF.getKey()))
-        {
-            newEdge.setTriggerOnEof(edge.getBoolean(JsonKey.EDGE_TRIGGER_ON_EOF.getKey()));
-        }
-        if (edge.has(JsonKey.EDGE_REQUIRED_CONDITIONS.getKey()))
-        {
-            this.parseRequiredConditions(edge, newEdge);
-        }
+        newEdge.setRegExp(this.loadOptStringAttributeFromJsonObject(edge, JsonKey.EDGE_REG_EXP));
+        newEdge.setCheckExp(this.loadOptStringAttributeFromJsonObject(edge, JsonKey.EDGE_CHECK_EXP));
+        newEdge.setTriggerAlways(this.loadOptBooleanAttributeFromJsonObject(edge, JsonKey.EDGE_TRIGGER_ALWAYS));
+        newEdge.setTriggerOnEof(this.loadOptBooleanAttributeFromJsonObject(edge, JsonKey.EDGE_TRIGGER_ON_EOF));
+        newEdge.setRequiredConditions(
+            this.loadOptEnumAttributeFromJsonObject(edge, IEdgeDefinition.RequiredConditions.class, JsonKey.EDGE_REQUIRED_CONDITIONS));
         newEdge
             .setTimeIntervalSinceLastMicrotransition(this.parseTimeInterval(edge, JsonKey.EDGE_TIME_INTERVAL_SINCE_LAST_MICROTRANSITION));
         newEdge.setTimeIntervalSinceLastTransition(this.parseTimeInterval(edge, JsonKey.EDGE_TIME_INTERVAL_SINCE_LAST_TRANSITION));
         newEdge.setTimeIntervalSinceAutomatonStart(this.parseTimeInterval(edge, JsonKey.EDGE_TIME_INTERVAL_SINCE_AUTOMATON_START));
         newEdge.setTimeIntervalForEvent(this.parseTimeInterval(edge, JsonKey.EDGE_TIME_INTERVAL_FOR_EVENT));
-        if (!edge.has(JsonKey.EDGE_CHANNEL.getKey()))
+        newEdge.setChannel(this.loadOptStringAttributeFromJsonObject(edge, JsonKey.EDGE_CHANNEL));
+        if (newEdge.getChannel() == null)
         {
             newEdge.setChannel(ILogEntry.DEFAULT_CHANNEL);
-        }
-        else
-        {
-            newEdge.setChannel(edge.getString(JsonKey.EDGE_CHANNEL.getKey()));
-        }
-    }
-
-    private void parseRequiredConditions(final JSONObject edge, final GenericEdge newEdge)
-    {
-        final String val = edge.getString(JsonKey.EDGE_REQUIRED_CONDITIONS.getKey());
-        if (val.equals(JsonKey.EDGE_REQUIRED_CONDITIONS_ONE.getKey()))
-        {
-            newEdge.setRequiredConditions(IEdgeDefinition.RequiredConditions.ONE);
-        }
-        else if (val.equals(JsonKey.EDGE_REQUIRED_CONDITIONS_ALL.getKey()))
-        {
-            newEdge.setRequiredConditions(IEdgeDefinition.RequiredConditions.ALL);
-        }
-        else
-        {
-            throw new AutomatonLoadingException("Invalid value for required conditions: " + val);
         }
     }
 
@@ -319,6 +309,50 @@ public class JsonAutomatonDefinition implements IAutomatonDefinition
                 StringToGenericTimeIntervalConverter.parseUnit(durationObject.getString(JsonKey.TIME_INTERVAL_DURATION_UNIT.getKey())));
             return d;
         }
+    }
+
+    private String loadOptStringAttributeFromJsonObject(final JSONObject jsonObject, final JsonKey key)
+    {
+        return jsonObject.has(key.getKey()) ? jsonObject.getString(key.getKey()) : null;
+    }
+
+    private Boolean loadOptBooleanAttributeFromJsonObject(final JSONObject jsonObject, final JsonKey key)
+    {
+        return jsonObject.has(key.getKey()) ? jsonObject.getBoolean(key.getKey()) : null;
+    }
+
+    private String loadOptStringAttributeFromJsonObjectWithDeprecatedAlternative(final JSONObject jsonObject, final JsonKey key,
+        final JsonKey oldKey)
+    {
+        String value = this.loadOptStringAttributeFromJsonObject(jsonObject, key);
+        if (value == null)
+        {
+            value = this.loadOptStringAttributeFromJsonObject(jsonObject, oldKey);
+            if (value != null)
+            {
+                LOG.warn(CONFIGURATION_KEY_DEPRECATED, key.getKey(), oldKey.getKey());
+            }
+        }
+        return value;
+    }
+
+    private <E extends Enum<E>> E loadOptEnumAttributeFromJsonObject(final JSONObject jsonObject, final Class<E> enumClz, final JsonKey key)
+    {
+        final String value = this.loadOptStringAttributeFromJsonObject(jsonObject, key);
+        if (value == null)
+        {
+            return null;
+        }
+        final E[] enumConstants = enumClz.getEnumConstants();
+        assert enumConstants != null; // E is an enum, guaranteed by declaration
+        for (final E enumConstant : enumConstants)
+        {
+            if (value.toLowerCase(Locale.US).equals(enumConstant.toString().toLowerCase(Locale.US)))
+            {
+                return enumConstant;
+            }
+        }
+        throw new AutomatonLoadingException("Invalid value for required conditions: " + value);
     }
 
     // Just for logging output / no business use
