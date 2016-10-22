@@ -36,6 +36,7 @@ import de.pixida.logtest.designer.IMainWindow;
 import de.pixida.logtest.designer.automaton.AutomatonEditor;
 import de.pixida.logtest.designer.commons.ExceptionDialog;
 import de.pixida.logtest.designer.commons.Icons;
+import de.pixida.logtest.designer.commons.SelectFileButton;
 import de.pixida.logtest.designer.logreader.LogReaderEditor;
 import de.pixida.logtest.engine.AutomatonParameters;
 import de.pixida.logtest.logreaders.GenericLogReader;
@@ -330,7 +331,7 @@ public class TestRunEditor extends Editor
         final TextField automatonFilePath = new TextField();
         this.automatonFilePathProperty.bind(automatonFilePath.textProperty());
         HBox.setHgrow(automatonFilePath, Priority.ALWAYS);
-        final Button selectAutomatonFilePathButton = LogReaderEditor.createSelectFileButton(automatonFilePath,
+        final Button selectAutomatonFilePathButton = SelectFileButton.createButtonWithFileSelection(automatonFilePath,
             Editor.Type.AUTOMATON.getIconName(), "Select " + Editor.Type.AUTOMATON.getName(), AutomatonEditor.AUTOMATON_FILE_MASK,
             AutomatonEditor.AUTOMATON_FILE_DESCRIPTION);
         final HBox automatonFilePathConfig = new HBox(automatonFilePath, selectAutomatonFilePathButton);
@@ -353,7 +354,7 @@ public class TestRunEditor extends Editor
         final TextField logReaderConfigurationFilePath = new TextField();
         this.logReaderConfigurationFilePathProperty.bind(logReaderConfigurationFilePath.textProperty());
         HBox.setHgrow(logReaderConfigurationFilePath, Priority.ALWAYS);
-        final Button selectLogReaderConfigurationFilePathButton = LogReaderEditor.createSelectFileButton(logReaderConfigurationFilePath,
+        final Button selectLogReaderConfigurationFilePathButton = SelectFileButton.createButtonWithFileSelection(logReaderConfigurationFilePath,
             Editor.Type.LOG_READER_CONFIG.getIconName(), "Select " + Editor.Type.LOG_READER_CONFIG.getName(),
             LogReaderEditor.LOG_READER_FILE_MASK, LogReaderEditor.LOG_READER_FILE_DESCRIPTION);
         final HBox logReaderConfigurationFilePathConfig = new HBox(logReaderConfigurationFilePath,
@@ -374,7 +375,7 @@ public class TestRunEditor extends Editor
         final TextField logFilePath = new TextField();
         this.logFilePathProperty.bind(logFilePath.textProperty());
         HBox.setHgrow(logFilePath, Priority.ALWAYS);
-        final Button selectLogFileButton = LogReaderEditor.createSelectFileButton(logFilePath, LogReaderEditor.LOG_FILE_ICON_NAME,
+        final Button selectLogFileButton = SelectFileButton.createButtonWithFileSelection(logFilePath, LogReaderEditor.LOG_FILE_ICON_NAME,
             "Select log file", null, null);
         final HBox fileInputConfig = new HBox(logFilePath, selectLogFileButton);
         final VBox lines = new VBox();

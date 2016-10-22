@@ -35,6 +35,7 @@ import de.pixida.logtest.designer.Editor;
 import de.pixida.logtest.designer.IMainWindow;
 import de.pixida.logtest.designer.commons.ExceptionDialog;
 import de.pixida.logtest.designer.commons.Icons;
+import de.pixida.logtest.designer.commons.SelectFileButton;
 import de.pixida.logtest.logreaders.GenericLogReader;
 import de.pixida.logtest.logreaders.GenericLogReader.HandlingOfNonHeadlineLines;
 import de.pixida.logtest.logreaders.ILogEntry;
@@ -65,7 +66,6 @@ import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
 import javafx.scene.text.TextFlow;
-import javafx.stage.FileChooser;
 import javafx.util.StringConverter;
 
 public class LogReaderEditor extends Editor
@@ -206,7 +206,7 @@ public class LogReaderEditor extends Editor
         inputTypeText.setSelected(true);
         final TextField pathInput = new TextField();
         HBox.setHgrow(pathInput, Priority.ALWAYS);
-        final Button selectLogFileButton = createSelectFileButton(pathInput, LOG_FILE_ICON_NAME, "Select log file", null, null);
+        final Button selectLogFileButton = SelectFileButton.createButtonWithFileSelection(pathInput, LOG_FILE_ICON_NAME, "Select log file", null, null);
         final Text pathInputLabel = new Text("Log file path: ");
         final HBox fileInputConfig = new HBox();
         fileInputConfig.setAlignment(Pos.CENTER_LEFT);
@@ -263,33 +263,6 @@ public class LogReaderEditor extends Editor
         }
     }
 
-    public static Button createSelectFileButton(final TextField inputFieldShowingPath, final String icon, final String title,
-        final String fileMask, final String fileMaskDescription)
-    {
-        final Button selectLogFileButton = new Button("Select");
-        selectLogFileButton.setGraphic(Icons.getIconGraphics(icon));
-        selectLogFileButton.setOnAction(event -> {
-            final FileChooser fileChooser = new FileChooser();
-            fileChooser.setTitle(title);
-            if (StringUtils.isNotBlank(fileMask) && StringUtils.isNotBlank(fileMaskDescription))
-            {
-                fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter(fileMaskDescription, fileMask));
-            }
-            File initialDirectory = new File(inputFieldShowingPath.getText()).getParentFile();
-            if (initialDirectory == null || !initialDirectory.isDirectory())
-            {
-                initialDirectory = new File(".");
-            }
-            fileChooser.setInitialDirectory(initialDirectory);
-            final File selectedFile = fileChooser.showOpenDialog(((Node) event.getTarget()).getScene().getWindow());
-            if (selectedFile != null)
-            {
-                inputFieldShowingPath.setText(selectedFile.getAbsolutePath());
-            }
-        });
-        return selectLogFileButton;
-    }
-
     private List<Triple<String, Node, String>> createConfigurationForm()
     {
         final List<Triple<String, Node, String>> formItems = new ArrayList<>();
@@ -305,7 +278,7 @@ public class LogReaderEditor extends Editor
             .add(Triple.of("Headline Pattern", textInput, "The perl style regular expression is used to spot the beginning of"
                 + " log entries in the log file. If a log entry consists of multiple lines, this pattern must only match the first"
                 + " line, called \"head line\". Groups can intentionally be matched to spot values like timestamp or channel name."
-                + " All matching groups are removed from the payload."));
+                + " All matching groups are removed from the payload before they are processed by an automaton."));
 
         // Index of timestamp
         Supplier<Integer> getter = () -> this.logReader.getHeadlinePatternIndexOfTimestamp();
@@ -359,7 +332,7 @@ public class LogReaderEditor extends Editor
                 this.setChanged(true);
             });
         formItems.add(Triple.of("Log File Encoding", encodingInput, "Encoding of the log file. Note that some of the encodings might"
-            + " be platform specific such as reading the log on a different platform might fail. Usually, log files are written"
+            + " be platform specific such that reading the log on a different platform might fail. Usually, log files are written"
             + " using UTF-8, UTF-16, ISO-8859-1 or ASCII."));
 
         return formItems;
