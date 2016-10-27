@@ -62,5 +62,4 @@ public abstract class SelectFileButton
         });
         return selectLogFileButton;
     }
-
 }

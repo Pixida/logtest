@@ -23,6 +23,7 @@ import org.junit.Test;
 import de.pixida.logtest.automatondefinitions.GenericNode;
 import de.pixida.logtest.automatondefinitions.IEdgeDefinition;
 import de.pixida.logtest.automatondefinitions.INodeDefinition;
+import de.pixida.logtest.automatondefinitions.INodeDefinition.Type;
 import de.pixida.logtest.automatondefinitions.TestAutomaton;
 import de.pixida.logtest.logreaders.GenericLogEntry;
 
@@ -1161,25 +1162,35 @@ public class AutomatonTest
         Assert.assertTrue(a.succeeded());
     }
 
-    //    @Test
-    //    public void testNumericReturnValuesCanBeProcessedLikePrimitiveNumbers()
-    //    {
-    //        final int maxLineNumber = 100000;
-    //        final TestAutomaton ta = new TestAutomaton().withOnLoad("var firstLineNumber;");
-    //        final GenericNode initial = ta.createNode().withType(INodeDefinition.Type.INITIAL).get();
-    //        final GenericNode success = ta.createNode().withType(INodeDefinition.Type.SUCCESS).withWait().get();
-    //        final GenericNode failure = ta.createNode().withType(INodeDefinition.Type.FAILURE).get();
-    //        ta.createEdge(initial, success).withTriggerAlways().withOnWalk("firstLineNumber = engine.getLogEntryLineNumber()");
-    //        ta.createEdge(success, failure).withCheckExp("!(engine.getLogEntryLineNumber() > firstLineNumber)");
-    //        final Automaton a = this.createAndCheckAutomaton(ta);
-    //
-    //        for (int i = 0; i <= maxLineNumber && a.canProceed(); i++)
-    //        {
-    //            a.proceedWithLogEntry(new GenericLogEntry(i, 0, ""));
-    //        }
-    //
-    //        Assert.assertFalse(a.succeeded());
-    //    }
+    @Test
+    public void testJavaScriptEvaluatesValuesReturnedByEngineCorrectly()
+    {
+        // This bug occurred with JavaScript only (with python, it always worked well):
+        // After assigning the log entry line number "83" to a JavaScript variable, the later log line number 100 is evaluated as not being
+        // greater than the assigned value 83, i.e. "100 > 83" evaluates to "false".
+        // Note that writing "engine.getLogEntryLineNumber() > cmp" (100 > 83) evaluated to false, but
+        // "engine.getLogEntryLineNumber() > 83" and "100 > cmp" and "100 > 83" evaluate to true. It worked with "cmp" values smaller 100,
+        // failed for a lot of numbers >100, but started to evaluate correctly again for much higher numbers, so the behavior was quite
+        // unstable and is hard to describe.
+        // It was fixed by not returning "long" but "int" values from Java methods into JavaScript. Obviously, the nashorns conversion
+        // from "long" to "int" creates broken objects for specific values (e.g. 100). Writing parseInt() around the left or the right
+        // expression or the variable during assignment always fixes the problem.
+        final TestAutomaton ta = new TestAutomaton().withScriptLanguage("JavaScript");
+        final GenericNode initial = ta.createNode("initial").withType(Type.INITIAL).get();
+        final GenericNode ok = ta.createNode("ok").withType(Type.SUCCESS).get();
+        ta.createEdge(initial, ok).withCheckExp(
+            "if (engine.getLogEntryLineNumber() == 83) cmp = engine.getLogEntryLineNumber();"
+                + "engine.getLogEntryLineNumber() == 100 && engine.getLogEntryLineNumber() > cmp");
+        final Automaton automaton = new Automaton(ta, new HashMap<>());
+        for (int i = 1; i <= 100; i++)
+        {
+            automaton.proceedWithLogEntry(new GenericLogEntry(i, 0, ""));
+        }
+        // HACK: Normally, the automaton *MUST* succeed. Currently, we leave this bug as it will hopefully be fixed. The solution is
+        // to always write Number() when accessing "long" values from JavaScript.
+        Assert.assertFalse(automaton.succeeded()); // If this assumption fails, the bug has been fixed and engine methods returning "long"
+        // can be called without writing Number(engine.getXYZ())
+    }
 
     private Automaton createAndCheckAutomaton(final TestAutomaton ta)
     {

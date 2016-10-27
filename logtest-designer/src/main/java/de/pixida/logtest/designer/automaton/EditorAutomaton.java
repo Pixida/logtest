@@ -113,7 +113,7 @@ class EditorAutomaton implements IAutomatonDefinition
         });
         cf.addOption("Description", descriptionInput);
 
-        final ObservableList<String> options = FXCollections.observableArrayList("JavaScript", "Python");
+        final ObservableList<String> options = FXCollections.observableArrayList("JavaScript", "python");
         final ChoiceBox<String> scriptLanguageInput = new ChoiceBox<>(options);
         scriptLanguageInput.setValue(
             StringUtils.isBlank(this.scriptLanguage) || !options.contains(this.scriptLanguage) ? options.get(0) : this.scriptLanguage);
