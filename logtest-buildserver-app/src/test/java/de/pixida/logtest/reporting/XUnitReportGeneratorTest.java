@@ -29,12 +29,12 @@ import de.pixida.logtest.processing.EvaluationResult.Result;
 import de.pixida.logtest.processing.Job;
 import de.pixida.logtest.processing.JobExecutorTest;
 
-public class JUnitStyleXmlReportGeneratorTest
+public class XUnitReportGeneratorTest
 {
     @Rule
     public final TemporaryFolder tempFolder = new TemporaryFolder();
 
-    public JUnitStyleXmlReportGeneratorTest()
+    public XUnitReportGeneratorTest()
     {
         // Empty constructor needed by checkstyle
     }
@@ -44,7 +44,7 @@ public class JUnitStyleXmlReportGeneratorTest
     {
         final long totalTimeMs = 1000;
         final File tmpFile = this.tempFolder.newFile();
-        final JUnitStyleXmlReportGenerator generator = new JUnitStyleXmlReportGenerator(tmpFile, totalTimeMs);
+        final XUnitReportGenerator generator = new XUnitReportGenerator(tmpFile, totalTimeMs);
         final List<Job> jobs = JobExecutorTest.createSomeStupidJobs();
         final EvaluationResult[] possibleResults = new EvaluationResult[Result.values().length];
         possibleResults[0] = new EvaluationResult(Result.SUCCESS, null);

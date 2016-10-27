@@ -40,8 +40,8 @@ import de.pixida.logtest.processing.Job;
 import de.pixida.logtest.processing.JobExecutor;
 import de.pixida.logtest.processing.LogSink;
 import de.pixida.logtest.reporting.ConsoleSummaryReportGenerator;
-import de.pixida.logtest.reporting.JUnitStyleXmlReportGenerator;
 import de.pixida.logtest.reporting.ReportsGenerator;
+import de.pixida.logtest.reporting.XUnitReportGenerator;
 
 public class RunIntegrationTests
 {
@@ -214,7 +214,7 @@ public class RunIntegrationTests
         reportsGenerator.setJobExecutionTimes(this.jobExecutionTimesMs);
         if (this.jUnitReportTarget != null)
         {
-            reportsGenerator.addReportGenerator(new JUnitStyleXmlReportGenerator(this.jUnitReportTarget, this.stopWatch.getTime()));
+            reportsGenerator.addReportGenerator(new XUnitReportGenerator(this.jUnitReportTarget, this.stopWatch.getTime()));
         }
         reportsGenerator.generateReports();
         final long numFailedExecutions = this.results.stream().mapToLong(result -> result.stream().filter(er -> !er.isSuccess()).count())
@@ -312,7 +312,7 @@ public class RunIntegrationTests
             .build();
         final Option reportFile = Option.builder("r")
             .longOpt(REPORT_SWITCH)
-            .desc("Generated JUnit report XML file target location")
+            .desc("Write XUnit report to file")
             .hasArg()
             .argName("file")
             .build();

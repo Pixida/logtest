@@ -36,15 +36,15 @@ import de.pixida.logtest.processing.EvaluationResult;
 import de.pixida.logtest.processing.Job;
 import de.pixida.logtest.processing.LogSink;
 
-public class JUnitStyleXmlReportGenerator implements IReportGenerator
+public class XUnitReportGenerator implements IReportGenerator
 {
-    private static final Logger LOG = LoggerFactory.getLogger(JUnitStyleXmlReportGenerator.class);
+    private static final Logger LOG = LoggerFactory.getLogger(XUnitReportGenerator.class);
 
     private final File destFile;
     private final long totalTimeMs;
     private final Map<Job, List<Triple<LogSink, EvaluationResult, Long>>> results = new LinkedHashMap<>(); // Preserve ordering
 
-    public JUnitStyleXmlReportGenerator(final File aDestFile, final long aTotalTimeMs)
+    public XUnitReportGenerator(final File aDestFile, final long aTotalTimeMs)
     {
         Validate.notNull(aDestFile, "Destination file must be set!");
         Validate.isTrue(aTotalTimeMs >= 0L, "Total time cannot be negative.");

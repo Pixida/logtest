@@ -12,7 +12,7 @@ import org.junit.runners.Suite;
 
 @RunWith(Suite.class)
 @Suite.SuiteClasses({
-                JUnitStyleXmlReportGeneratorTest.class,
+                XUnitReportGeneratorTest.class,
                 ConsoleSummaryReportGeneratorTest.class
 })
 public class ReportingTestsuite
