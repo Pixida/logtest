@@ -24,6 +24,15 @@
           <vendor>Pixida GmbH</vendor>
           <mainClass>de.pixida.logtest.designer.Main</mainClass>
         </configuration>
+		<executions>
+			<execution>
+				<id>create-jfxjar</id>
+				<phase>package</phase>
+				<goals>
+					<goal>build-jar</goal>
+				</goals>
+			</execution>
+		</executions>
       </plugin>
     </plugins>
   </build>

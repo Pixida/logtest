@@ -32,25 +32,18 @@ public class AutomatonParameters implements IParameters
     @Override
     public String insertAllParameters(final String value)
     {
-        if (value == null)
-        {
-            return null;
-        }
-        else
-        {
-            return new PregCallbackReplacer(PARAMETER_PREG).replaceMatches(value, match -> {
-                final String paramName = match.group(1);
-                final String v = this.parameters.get(paramName);
-                if (v == null)
-                {
-                    throw new InvalidAutomatonDefinitionException("Referenced parameter '" + paramName + "' is not defined");
-                }
-                else
-                {
-                    return v;
-                }
-            });
-        }
+        return new PregCallbackReplacer(PARAMETER_PREG).replaceMatches(value, match -> {
+            final String paramName = match.group(1);
+            final String v = this.parameters.get(paramName);
+            if (v == null)
+            {
+                throw new InvalidAutomatonDefinitionException("Referenced parameter '" + paramName + "' is not defined");
+            }
+            else
+            {
+                return v;
+            }
+        });
     }
 
     AutomatonParameters getDeepCopy()

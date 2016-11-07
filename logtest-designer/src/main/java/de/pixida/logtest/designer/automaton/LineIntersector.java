@@ -33,6 +33,7 @@ abstract class LineIntersector
         {
             Validate.notNull(aIntersection);
             Validate.notNull(aLine);
+            Validate.isTrue(aDistance >= 0d);
             this.intersection = aIntersection;
             this.line = aLine;
             this.distance = aDistance;
@@ -76,7 +77,7 @@ abstract class LineIntersector
                 continue;
             }
 
-            if (!checkIfPointIsOnSameLine(intersection, line))
+            if (!checkIfPointIsOnTheLine(intersection, line))
             {
                 continue;
             }
@@ -89,7 +90,7 @@ abstract class LineIntersector
         return results;
     }
 
-    static boolean checkIfPointIsOnSameLine(final Point2D point, final Line line)
+    static boolean checkIfPointIsOnTheLine(final Point2D point, final Line line)
     {
         final Point2D lineStart = new Point2D(line.getStartX(), line.getStartY());
         final Point2D lineEnd = new Point2D(line.getEndX(), line.getEndY());

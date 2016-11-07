@@ -150,7 +150,20 @@ class AutomatonNode extends RectangularNode implements INodeDefinition
     void setType(final Type value)
     {
         this.type = value;
+        this.showHideSuccessCheckExpDependingOnNodeType();
         this.updateRect();
+    }
+
+    private void showHideSuccessCheckExpDependingOnNodeType()
+    {
+        if (this.type != Type.SUCCESS)
+        {
+            this.successCheckExpPropertyNode.apply("");
+        }
+        else
+        {
+            this.successCheckExpPropertyNode.apply(this.successCheckExp);
+        }
     }
 
     @Override
@@ -184,6 +197,7 @@ class AutomatonNode extends RectangularNode implements INodeDefinition
     private void setSuccessCheckExp(final String value)
     {
         this.successCheckExp = this.successCheckExpPropertyNode.apply(value);
+        this.showHideSuccessCheckExpDependingOnNodeType();
     }
 
     @Override
@@ -251,7 +265,8 @@ class AutomatonNode extends RectangularNode implements INodeDefinition
         final ToggleGroup flagToggleGroup = new ToggleGroup();
         typeAttributes.getChildren().add(this.createRadioButtonForType(null, "None / Intermediate", flagToggleGroup));
         typeAttributes.getChildren().add(this.createRadioButtonForType(Type.INITIAL, "Initial", flagToggleGroup));
-        typeAttributes.getChildren().add(this.createRadioButtonForType(Type.SUCCESS, "Success", flagToggleGroup));
+        final RadioButton successOption = this.createRadioButtonForType(Type.SUCCESS, "Success", flagToggleGroup);
+        typeAttributes.getChildren().add(successOption);
         typeAttributes.getChildren().add(this.createRadioButtonForType(Type.FAILURE, "Failure", flagToggleGroup));
         cf.addOption("Type", typeAttributes);
 
@@ -272,9 +287,10 @@ class AutomatonNode extends RectangularNode implements INodeDefinition
             this.setSuccessCheckExp(newValue);
             this.getGraph().handleChange();
         });
+        successCheckExpInput.disableProperty().bind(successOption.selectedProperty().not());
         cf.addOption("Script expression to verify if node is successful", successCheckExpInput);
 
-        createEnterAndLeaveScriptConfig(cf);
+        this.createEnterAndLeaveScriptConfig(cf);
 
         return cf;
     }
