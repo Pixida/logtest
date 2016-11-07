@@ -1,0 +1,24 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <artifactId>logtest-wiki</artifactId>
+  <packaging>jar</packaging>
+  <name>Wiki</name>
+  <url>https://github.com/Pixida/logtest</url>
+  <description>A graphical designer tool for automatons and automaton tests.</description>
+	
+  <parent>
+    <groupId>de.pixida.logtest</groupId>
+    <artifactId>logtest</artifactId>
+    <version>1.0.3</version>
+  </parent>
+
+  <dependencies>
+      <dependency>
+        <groupId>de.pixida.logtest</groupId>
+        <artifactId>logtest-core</artifactId>
+        <version>1.0.3</version>
+      </dependency>
+  </dependencies>
+</project>
