@@ -43,6 +43,7 @@
 		<module>logtest-core</module>
 		<module>logtest-buildserver-app</module>
 		<module>logtest-designer</module>
+		<module>logtest-wiki</module>
 	</modules>
 
 	<properties>

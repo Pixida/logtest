@@ -6,7 +6,7 @@
   <packaging>jar</packaging>
   <name>Wiki</name>
   <url>https://github.com/Pixida/logtest</url>
-  <description>A graphical designer tool for automatons and automaton tests.</description>
+  <description>A project containing several documents referenced inside the project wiki.</description>
 	
   <parent>
     <groupId>de.pixida.logtest</groupId>
