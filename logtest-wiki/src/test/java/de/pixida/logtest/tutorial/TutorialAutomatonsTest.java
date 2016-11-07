@@ -41,6 +41,18 @@ public class TutorialAutomatonsTest
         Assert.assertTrue(this.getExecutionResultOfAutomatonOnTutorialLog("fridge-starts-up-correctly"));
     }
 
+    @Test
+    public void testTestFridgeRunsSteadilyTrivial()
+    {
+        Assert.assertFalse(this.getExecutionResultOfAutomatonOnTutorialLog("fridge-runs-steadily"));
+    }
+
+    @Test
+    public void testTestFridgeRunsSteadilyFixed()
+    {
+        Assert.assertTrue(this.getExecutionResultOfAutomatonOnTutorialLog("fridge-runs-steadily-fixed"));
+    }
+
     private boolean getExecutionResultOfAutomatonOnTutorialLog(final String automatonName)
     {
         final String tutorialFolder = "/tutorial";

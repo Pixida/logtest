@@ -1,0 +1,80 @@
+{
+    "nodes": [
+        {
+            "name": "Fride REBOOTED",
+            "id": "1",
+            "type": "FAILURE"
+        },
+        {
+            "name": "Fridge BOOTED",
+            "id": "2",
+            "outgoingEdges": [{
+                "destination": "1",
+                "id": "4",
+                "regExp": "System startup$"
+            }],
+            "type": "SUCCESS"
+        },
+        {
+            "name": "Fridge OFF",
+            "id": "3",
+            "outgoingEdges": [{
+                "destination": "2",
+                "id": "5",
+                "regExp": "System startup$"
+            }],
+            "type": "INITIAL"
+        }
+    ],
+    "description": "Test that the fridge starts up correctly.",
+    "designer": {
+        "nodes": {
+            "1": {"rect": {
+                "w": 79.798828125,
+                "x": 426,
+                "h": 32.26171875,
+                "y": 97
+            }},
+            "2": {"rect": {
+                "w": 74.7890625,
+                "x": 250,
+                "h": 32.26171875,
+                "y": 82
+            }},
+            "3": {"rect": {
+                "w": 68.3486328125,
+                "x": 30,
+                "h": 32.26171875,
+                "y": 70
+            }}
+        },
+        "edges": {
+            "4": {
+                "x": 375.39453125,
+                "regExpPropertyNode": {
+                    "w": 76.87890625,
+                    "x": 339.39453125,
+                    "h": 32.26171875,
+                    "y": 131.67923458232232
+                },
+                "y": 105.67923458232232
+            },
+            "5": {
+                "x": 174.67431640625,
+                "regExpPropertyNode": {
+                    "w": 76.87890625,
+                    "x": 136.67431640625,
+                    "h": 32.26171875,
+                    "y": 115.30561742469087
+                },
+                "y": 94.30561742469087
+            }
+        },
+        "description": {
+            "w": 173.8369140625,
+            "x": 10,
+            "h": 32.26171875,
+            "y": 10
+        }
+    }
+}
