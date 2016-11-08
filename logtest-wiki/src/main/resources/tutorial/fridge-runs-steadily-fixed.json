@@ -27,7 +27,7 @@
             "type": "INITIAL"
         }
     ],
-    "description": "Test that the fridge starts up correctly.",
+    "description": "Test that the fridge runs steadily.",
     "designer": {
         "nodes": {
             "1": {"rect": {
@@ -72,7 +72,7 @@
             }
         },
         "description": {
-            "w": 173.8369140625,
+            "w": 150.3603515625,
             "x": 10,
             "h": 32.26171875,
             "y": 10

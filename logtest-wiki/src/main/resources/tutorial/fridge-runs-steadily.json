@@ -6,27 +6,27 @@
             "type": "FAILURE"
         },
         {
-            "name": "Fridge BOOTED",
+            "name": "Fridge OFF",
             "id": "2",
             "outgoingEdges": [{
-                "destination": "1",
+                "destination": "3",
                 "id": "4",
                 "regExp": "System startup$"
             }],
-            "type": "SUCCESS"
+            "type": "INITIAL"
         },
         {
-            "name": "Fridge OFF",
+            "name": "Fridge BOOTED",
             "id": "3",
             "outgoingEdges": [{
-                "destination": "2",
+                "destination": "1",
                 "id": "5",
                 "regExp": "System startup$"
             }],
-            "type": "INITIAL"
+            "type": "SUCCESS"
         }
     ],
-    "description": "Test that the fridge starts up correctly.",
+    "description": "Test that the fridge runs steadily.",
     "designer": {
         "nodes": {
             "1": {"rect": {
@@ -36,30 +36,20 @@
                 "y": 97
             }},
             "2": {"rect": {
-                "w": 74.7890625,
-                "x": 250,
-                "h": 32.26171875,
-                "y": 82
-            }},
-            "3": {"rect": {
                 "w": 68.3486328125,
                 "x": 30,
                 "h": 32.26171875,
                 "y": 70
+            }},
+            "3": {"rect": {
+                "w": 74.7890625,
+                "x": 250,
+                "h": 32.26171875,
+                "y": 82
             }}
         },
         "edges": {
             "4": {
-                "x": 375.39453125,
-                "regExpPropertyNode": {
-                    "w": 76.87890625,
-                    "x": 339.39453125,
-                    "h": 32.26171875,
-                    "y": 131.67923458232232
-                },
-                "y": 105.67923458232232
-            },
-            "5": {
                 "x": 174.67431640625,
                 "regExpPropertyNode": {
                     "w": 76.87890625,
@@ -68,10 +58,20 @@
                     "y": 115.30561742469087
                 },
                 "y": 94.30561742469087
+            },
+            "5": {
+                "x": 375.39453125,
+                "regExpPropertyNode": {
+                    "w": 76.87890625,
+                    "x": 339.39453125,
+                    "h": 32.26171875,
+                    "y": 131.67923458232232
+                },
+                "y": 105.67923458232232
             }
         },
         "description": {
-            "w": 173.8369140625,
+            "w": 150.3603515625,
             "x": 10,
             "h": 32.26171875,
             "y": 10
