@@ -1,107 +1,100 @@
 {
     "nodes": [
         {
-            "name": "Door just closed",
-            "id": "1",
-            "outgoingEdges": [
-                {
-                    "triggerOnEof": true,
-                    "destination": "3",
-                    "id": "6",
-                    "regExp": "Door opened"
-                },
-                {
-                    "destination": "2",
-                    "id": "7",
-                    "regExp": "Light state: off"
-                }
-            ]
-        },
-        {
-            "name": "Light turned off",
-            "id": "2",
-            "type": "SUCCESS"
-        },
-        {
-            "name": "Light did not turn off",
-            "id": "3",
-            "type": "FAILURE"
-        },
-        {
             "name": "Waiting door gets opened",
-            "id": "4",
+            "id": "1",
             "outgoingEdges": [{
-                "destination": "1",
+                "destination": "4",
                 "id": "5",
                 "regExp": "Door closed"
             }],
             "type": "INITIAL"
+        },
+        {
+            "name": "Light did not turn off",
+            "id": "2",
+            "type": "FAILURE"
+        },
+        {
+            "name": "Light turned off",
+            "id": "3",
+            "type": "SUCCESS"
+        },
+        {
+            "name": "Door just closed",
+            "id": "4",
+            "outgoingEdges": [
+                {
+                    "destination": "2",
+                    "id": "6",
+                    "regExp": "Door opened"
+                },
+                {
+                    "destination": "3",
+                    "id": "7",
+                    "regExp": "Light state: off"
+                }
+            ]
         }
     ],
     "description": "Test that the light inside of my fridge goes off when I close the door.",
     "designer": {
         "nodes": {
             "1": {"rect": {
-                "w": 77.66015625,
-                "x": 319,
+                "w": 122.005859375,
+                "x": 48,
                 "h": 32.26171875,
-                "y": 129
+                "y": 119
             }},
             "2": {"rect": {
+                "w": 98.431640625,
+                "x": 340,
+                "h": 32.26171875,
+                "y": 251
+            }},
+            "3": {"rect": {
                 "w": 74.96484375,
                 "x": 531,
                 "h": 32.26171875,
                 "y": 148
             }},
-            "3": {"rect": {
-                "w": 98.431640625,
-                "x": 347,
-                "h": 32.26171875,
-                "y": 277
-            }},
             "4": {"rect": {
-                "w": 122.005859375,
-                "x": 48,
+                "w": 77.66015625,
+                "x": 279,
                 "h": 32.26171875,
-                "y": 119
+                "y": 125
             }}
         },
         "edges": {
             "5": {
-                "x": 236.590576171875,
+                "x": 212.590576171875,
                 "regExpPropertyNode": {
                     "w": 59.2080078125,
-                    "x": 230.590576171875,
+                    "x": 200.590576171875,
                     "h": 32.26171875,
-                    "y": 87.130859375
+                    "y": 79.130859375
                 },
-                "y": 136.130859375
+                "y": 129.130859375
             },
             "6": {
-                "triggerOnEofPropertyNode": {
-                    "w": 24.10546875,
-                    "x": 420.52294921875,
-                    "h": 16.30078125,
-                    "y": 234.630859375
-                },
-                "x": 378.52294921875,
+                "x": 331.52294921875,
                 "regExpPropertyNode": {
                     "w": 64.69140625,
-                    "x": 407.52294921875,
+                    "x": 360.52294921875,
                     "h": 32.26171875,
-                    "y": 184.630859375
+                    "y": 185.630859375
                 },
-                "y": 222.630859375
+                "y": 192.630859375
             },
             "7": {
-                "x": 465.78662109375,
+                "x": 425.78662109375,
                 "regExpPropertyNode": {
                     "w": 69.1689453125,
-                    "x": 437.78662109375,
+                    "x": 397.78662109375,
                     "h": 32.26171875,
-                    "y": 95.17384263477709
+                    "y": 91.17384263477709
                 },
-                "y": 145.1738426347771
+                "y": 141.1738426347771
             }
         },
         "description": {
