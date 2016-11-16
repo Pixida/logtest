@@ -375,9 +375,12 @@ class AutomatonEdge extends CircularNode implements IEdgeDefinition
 
         final VBox requiredConditionsAndOrOr = new VBox();
         final ToggleGroup tg = new ToggleGroup();
+        if (this.getRequiredConditions() == null)
+        {
+            this.setRequiredConditions(IEdgeDefinition.DEFAULT_REQUIRED_CONDITIONS_VALUE);
+        }
         requiredConditionsAndOrOr.getChildren()
-            .add(this.createRadioButtonInput(tg, "All (AND)",
-                this.getRequiredConditions() != null && this.getRequiredConditions() == RequiredConditions.ALL,
+            .add(this.createRadioButtonInput(tg, "All (AND)", this.getRequiredConditions() == RequiredConditions.ALL,
                 newValue -> {
                     if (newValue)
                     {
@@ -385,8 +388,7 @@ class AutomatonEdge extends CircularNode implements IEdgeDefinition
                     }
                 }));
         requiredConditionsAndOrOr.getChildren()
-            .add(this.createRadioButtonInput(tg, "One (OR)",
-                this.getRequiredConditions() != null && this.getRequiredConditions() == RequiredConditions.ONE,
+            .add(this.createRadioButtonInput(tg, "One (OR)", this.getRequiredConditions() == RequiredConditions.ONE,
                 newValue -> {
                     if (newValue)
                     {

@@ -157,8 +157,7 @@ class AutomatonEdge
             RequiredConditions currentRequiredConditions = this.requiredConditionsSetting;
             if (currentRequiredConditions == null)
             {
-                final RequiredConditions defaultValueIfNoneIsSetInEdgeConfiguration = RequiredConditions.ALL;
-                currentRequiredConditions = defaultValueIfNoneIsSetInEdgeConfiguration;
+                currentRequiredConditions = RequiredConditions.ALL;
             }
 
             // Check if this edge matches

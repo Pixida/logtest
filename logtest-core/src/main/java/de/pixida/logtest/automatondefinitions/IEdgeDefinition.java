@@ -10,6 +10,7 @@ package de.pixida.logtest.automatondefinitions;
 public interface IEdgeDefinition
 {
     public static final String DEFAULT_CHANNEL = null;
+    public static final RequiredConditions DEFAULT_REQUIRED_CONDITIONS_VALUE = RequiredConditions.ALL;
 
     public enum RequiredConditions
     {

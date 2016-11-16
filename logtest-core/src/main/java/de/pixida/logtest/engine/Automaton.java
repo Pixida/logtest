@@ -734,11 +734,16 @@ public class Automaton
             {
                 newEdge.setChannel(edgeDefinition.getChannel());
             }
-            if (edgeDefinition.getRequiredConditions() == IEdgeDefinition.RequiredConditions.ALL)
+            IEdgeDefinition.RequiredConditions requiredConditionsSetting = edgeDefinition.getRequiredConditions();
+            if (requiredConditionsSetting == null)
+            {
+                requiredConditionsSetting = IEdgeDefinition.DEFAULT_REQUIRED_CONDITIONS_VALUE;
+            }
+            if (requiredConditionsSetting == IEdgeDefinition.RequiredConditions.ALL)
             {
                 newEdge.setRequiredConditionsSetting(AutomatonEdge.RequiredConditions.ALL);
             }
-            else if (edgeDefinition.getRequiredConditions() == IEdgeDefinition.RequiredConditions.ONE)
+            else if (requiredConditionsSetting == IEdgeDefinition.RequiredConditions.ONE)
             {
                 newEdge.setRequiredConditionsSetting(AutomatonEdge.RequiredConditions.ONE);
             }
