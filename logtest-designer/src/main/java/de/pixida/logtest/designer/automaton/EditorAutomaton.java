@@ -26,6 +26,7 @@ import de.pixida.logtest.automatondefinitions.IEdgeDefinition;
 import de.pixida.logtest.automatondefinitions.INodeDefinition;
 import de.pixida.logtest.automatondefinitions.JsonAutomatonDefinition;
 import de.pixida.logtest.designer.automaton.RectangularNode.ContentDisplayMode;
+import de.pixida.logtest.engine.Automaton;
 import javafx.beans.value.ChangeListener;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -79,9 +80,13 @@ class EditorAutomaton implements IAutomatonDefinition
         this.configFrame.addOption("Description", this.descriptionInput);
 
         final ObservableList<String> options = FXCollections.observableArrayList("JavaScript", "python");
+        if (!options.contains(Automaton.DEFAULT_SCRIPTING_LANGUAGE))
+        {
+            options.add(0, Automaton.DEFAULT_SCRIPTING_LANGUAGE);
+        }
         final ChoiceBox<String> scriptLanguageInput = new ChoiceBox<>(options);
-        scriptLanguageInput.setValue(
-            StringUtils.isBlank(this.scriptLanguage) || !options.contains(this.scriptLanguage) ? options.get(0) : this.scriptLanguage);
+        scriptLanguageInput.setValue(StringUtils.isBlank(this.scriptLanguage)
+            || !options.contains(this.scriptLanguage) ? Automaton.DEFAULT_SCRIPTING_LANGUAGE : this.scriptLanguage);
         scriptLanguageInput.getSelectionModel().selectedIndexProperty()
             .addListener((ChangeListener<Number>) (observable, oldValue, newValue) -> {
                 EditorAutomaton.this.scriptLanguage = scriptLanguageInput.getItems().get((Integer) newValue);

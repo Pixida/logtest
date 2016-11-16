@@ -34,6 +34,8 @@ import de.pixida.logtest.logreaders.ILogEntry;
 
 public class Automaton
 {
+    public static final String DEFAULT_SCRIPTING_LANGUAGE = "JavaScript";
+
     private static final Logger LOG = LoggerFactory.getLogger(Automaton.class);
 
     private final class EventForConditionEvaluation implements IEventDescription
@@ -697,7 +699,7 @@ public class Automaton
         final Map<INodeDefinition, AutomatonNode> mapNodeDefinitionsToInternalNode = new HashMap<>();
         this.loadNodesFromDefinition(externalNodes, mapNodeDefinitionsToInternalNode);
         this.loadEdgesFromDefinition(externalEdges, mapNodeDefinitionsToInternalNode);
-        LOG.debug("Added '{}' nodes and '{}' edges", this.nodes.size(), this.edges.size());
+        LOG.debug("Loaded '{}' nodes and '{}' edges", this.nodes.size(), this.edges.size());
     }
 
     private void loadEdgesFromDefinition(final List<? extends IEdgeDefinition> externalEdges,
@@ -855,7 +857,7 @@ public class Automaton
         }
 
         // Edges are not equivalent if they contain scripting actions
-        if (matchingEdges.stream().filter(edge -> edge.getOnWalk().exists()).count() > 0)
+        if (matchingEdges.stream().anyMatch(edge -> edge.getOnWalk().exists()))
         {
             LOG.trace("Edges are not equivalent as of scripting actions having potential side effects");
             return false;
@@ -901,8 +903,7 @@ public class Automaton
     private void initScriptEngine()
     {
         final ScriptEngineManager manager = new ScriptEngineManager();
-        final String defaultScriptingLanguage = "JavaScript";
-        final String language = StringUtils.defaultIfBlank(this.scriptLanguage, defaultScriptingLanguage);
+        final String language = StringUtils.defaultIfBlank(this.scriptLanguage, this.DEFAULT_SCRIPTING_LANGUAGE);
         this.scriptingEngine = manager.getEngineByName(language);
         if (this.scriptingEngine == null)
         {
