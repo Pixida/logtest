@@ -181,8 +181,9 @@ class AutomatonEdge
             }
 
             // Some debug output which has proven to be helpful...
-            LOG.debug("Edge '{}' conditions: Total {}, Active {}, Applicable {}, Matching {}",
-                this, this.conditions.size(), this.activeConditions.size(), numApplicableConditions, numMatchingConditions);
+            LOG.debug("Edge '{}' (from '{}' to '{}') conditions: Total {}, Active {}, Applicable {}, Matching {}",
+                this, this.sourceNode, this.destinationNode, this.conditions.size(), this.activeConditions.size(), numApplicableConditions,
+                numMatchingConditions);
         }
 
         LOG.trace("Edge matches: {}", edgeMatches);

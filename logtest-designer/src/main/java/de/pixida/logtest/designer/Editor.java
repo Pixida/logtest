@@ -125,20 +125,20 @@ public abstract class Editor extends BorderPane
         return this.file.getParentFile();
     }
 
-    boolean isCurrentDocumentAssignedToFile()
+    boolean isDocumentAssignedToFile()
     {
         return this.file != null;
     }
 
-    boolean isCurrentDocumentAssignedToFile(final File value)
+    boolean isDocumentAssignedToFile(final File value)
     {
         Validate.notNull(value);
-        if (!this.isCurrentDocumentAssignedToFile())
+        if (!this.isDocumentAssignedToFile())
         {
             return false;
         }
         Validate.notNull(this.file);
-        return this.file.equals(this.file);
+        return this.file.equals(value);
     }
 
     protected void setFileMaskAndDescription(final String aFileMask, final String aFileDescription)

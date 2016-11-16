@@ -331,8 +331,8 @@ public class LogReaderEditor extends Editor
                 this.logReader.setLogFileCharset(charsets.get(newValue));
                 this.setChanged(true);
             });
-        formItems.add(Triple.of("Log File Encoding", encodingInput, "Encoding of the log file. Note that some of the encodings might"
-            + " be platform specific such that reading the log on a different platform might fail. Usually, log files are written"
+        formItems.add(Triple.of("Log File Encoding", encodingInput, "Encoding of the log file. Note that some of the encodings are"
+            + " platform specific such that reading the log on a different platform might fail. Usually, log files are written"
             + " using UTF-8, UTF-16, ISO-8859-1 or ASCII."));
 
         return formItems;

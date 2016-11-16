@@ -73,6 +73,7 @@ class Graph
             newNode.setName("New state");
             Graph.this.addObject(newNode);
             Graph.this.handleChange();
+            Graph.this.showConfigFrameOfObject(newNode);
         });
         this.contextMenu.getItems().add(mi);
     }
@@ -219,7 +220,7 @@ class Graph
         }
     }
 
-    private boolean showConfigFrameOfObject(final BaseObject baseObject)
+    public boolean showConfigFrameOfObject(final BaseObject baseObject)
     {
         Validate.notNull(baseObject);
         final Node configFrame = baseObject.getConfigFrame();

@@ -365,7 +365,8 @@ class AutomatonEdge extends CircularNode implements IEdgeDefinition
 
         final VBox specialTriggers = new VBox();
         specialTriggers.getChildren()
-            .add(this.createCheckBoxInput("Always Trigger", this.getTriggerAlways(), newValue -> this.setTriggerAlways(newValue)));
+            .add(this.createCheckBoxInput("Always Trigger (don't evaluate any conditions)",
+                this.getTriggerAlways(), newValue -> this.setTriggerAlways(newValue)));
         specialTriggers.getChildren()
             .add(this.createCheckBoxInput("Trigger On EOF", this.getTriggerOnEof(), newValue -> this.setTriggerOnEof(newValue)));
         cf.addOption("Special Triggers", specialTriggers);
@@ -428,8 +429,9 @@ class AutomatonEdge extends CircularNode implements IEdgeDefinition
         final Text fromOrTo = new Text((isMin ? "Min" : "Max") + ": ");
         gp.add(fromOrTo, column++, targetRow);
 
-        final String inclusive = "Inclusive";
-        final String exclusive = "Exclusive";
+        final String mathOperator = isMin ? ">" : "<";
+        final String inclusive = "Inclusive: " + mathOperator + "=";
+        final String exclusive = "Exclusive: " + mathOperator;
         final ChoiceBox<String> intervalBorderInput = new ChoiceBox<>(FXCollections.observableArrayList(inclusive, exclusive));
         intervalBorderInput.setValue(duration.isInclusive() ? inclusive : exclusive);
         intervalBorderInput.getSelectionModel().selectedIndexProperty()

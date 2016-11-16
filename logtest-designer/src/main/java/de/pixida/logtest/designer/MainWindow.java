@@ -244,7 +244,7 @@ class MainWindow implements IMainWindow
         fileChooser.setTitle(actionName + " " + newEditor.getTypeName());
         newEditor.setExtensionFiltersForFiles(fileChooser.getExtensionFilters());
         final Editor currentEditor = this.getCurrentEditor();
-        if (currentEditor != null && currentEditor.isCurrentDocumentAssignedToFile())
+        if (currentEditor != null && currentEditor.isDocumentAssignedToFile())
         {
             fileChooser.setInitialDirectory(currentEditor.getDirectoryOfAssignedFile());
         }
@@ -308,7 +308,7 @@ class MainWindow implements IMainWindow
 
     private boolean handleSaveDocument()
     {
-        if (!this.getCurrentEditor().isCurrentDocumentAssignedToFile())
+        if (!this.getCurrentEditor().isDocumentAssignedToFile())
         {
             return this.handleSaveDocumentAs();
         }
@@ -351,11 +351,11 @@ class MainWindow implements IMainWindow
         }
     }
 
-    private Tab findTabThatIsAssignedToFile(final File assignedFile)
+    private Tab findTabThatIsAssignedToFile(final File file)
     {
         for (final Tab tab : this.tabPane.getTabs())
         {
-            if (this.getEditorOfTab(tab).isCurrentDocumentAssignedToFile(assignedFile))
+            if (this.getEditorOfTab(tab).isDocumentAssignedToFile(file))
             {
                 return tab;
             }

@@ -263,7 +263,7 @@ class AutomatonNode extends RectangularNode implements INodeDefinition
 
         final VBox typeAttributes = new VBox();
         final ToggleGroup flagToggleGroup = new ToggleGroup();
-        typeAttributes.getChildren().add(this.createRadioButtonForType(null, "None / Intermediate", flagToggleGroup));
+        typeAttributes.getChildren().add(this.createRadioButtonForType(null, "None (intermediate node)", flagToggleGroup));
         typeAttributes.getChildren().add(this.createRadioButtonForType(Type.INITIAL, "Initial", flagToggleGroup));
         final RadioButton successOption = this.createRadioButtonForType(Type.SUCCESS, "Success", flagToggleGroup);
         typeAttributes.getChildren().add(successOption);
@@ -345,6 +345,7 @@ class AutomatonNode extends RectangularNode implements INodeDefinition
         result.setSelected(this.type == aType);
         result.setOnAction(event -> {
             this.setType(aType);
+            this.getGraph().handleChange();
         });
         return result;
     }
