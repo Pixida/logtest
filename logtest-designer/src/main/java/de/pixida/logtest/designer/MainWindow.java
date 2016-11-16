@@ -389,7 +389,9 @@ class MainWindow implements IMainWindow
 
         final Alert alert = new Alert(AlertType.INFORMATION);
         alert.setTitle("Confirm close");
-        alert.setHeaderText("If the " + currentEditor.getTypeName() + " is not saved, all changes are lost.");
+        alert.setHeaderText(
+            "If the " + currentEditor.getTypeName() + " \"" + currentEditor.getTitleShort().get()
+                + "\" is not saved, all changes are lost.");
         alert.setContentText("Do you want to save the " + currentEditor.getTypeName() + "?");
 
         final ButtonType yes = new ButtonType("Yes");
