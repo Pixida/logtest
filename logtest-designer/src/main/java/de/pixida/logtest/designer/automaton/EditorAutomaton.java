@@ -44,12 +44,14 @@ class EditorAutomaton implements IAutomatonDefinition
 
     private static final int Z_INDEX_AUTOMATON_PROPERTIES = 1;
 
-    private String onLoad;
-    private String description;
     private final RectangularNode descriptionNode;
     private String scriptLanguage;
 
     private final Graph graph;
+
+    private final ConfigFrame configFrame = new ConfigFrame("Automaton properties");
+    private final TextArea descriptionInput = new TextArea();
+    private final TextArea onLoadInput = new TextArea();
 
     EditorAutomaton(final Graph aGraph)
     {
@@ -61,6 +63,40 @@ class EditorAutomaton implements IAutomatonDefinition
         this.descriptionNode.setTitle("Abstract");
         this.descriptionNode.hide();
         this.graph.addObject(this.descriptionNode);
+
+        this.createConfigFrame();
+    }
+
+    private void createConfigFrame()
+    {
+        final int descriptionInputLines = 8;
+        this.descriptionInput.setPrefRowCount(descriptionInputLines);
+        this.descriptionInput.setWrapText(true);
+        this.descriptionInput.textProperty().addListener((ChangeListener<String>) (observable, oldValue, newValue) -> {
+            this.setDescription(newValue);
+            this.graph.handleChange();
+        });
+        this.configFrame.addOption("Description", this.descriptionInput);
+
+        final ObservableList<String> options = FXCollections.observableArrayList("JavaScript", "python");
+        final ChoiceBox<String> scriptLanguageInput = new ChoiceBox<>(options);
+        scriptLanguageInput.setValue(
+            StringUtils.isBlank(this.scriptLanguage) || !options.contains(this.scriptLanguage) ? options.get(0) : this.scriptLanguage);
+        scriptLanguageInput.getSelectionModel().selectedIndexProperty()
+            .addListener((ChangeListener<Number>) (observable, oldValue, newValue) -> {
+                EditorAutomaton.this.scriptLanguage = scriptLanguageInput.getItems().get((Integer) newValue);
+                this.graph.handleChange();
+            });
+        this.configFrame.addOption("Script language", scriptLanguageInput);
+
+        final int onLoadInputLines = 8;
+        this.onLoadInput.setPrefRowCount(onLoadInputLines);
+        this.onLoadInput.setWrapText(true);
+        this.onLoadInput.setStyle("-fx-font-family: monospace");
+        this.onLoadInput.textProperty().addListener((ChangeListener<String>) (observable, oldValue, newValue) -> {
+            this.graph.handleChange();
+        });
+        this.configFrame.addOption("On Load", this.onLoadInput);
     }
 
     @Override
@@ -78,7 +114,7 @@ class EditorAutomaton implements IAutomatonDefinition
     @Override
     public String getOnLoad()
     {
-        return this.onLoad;
+        return this.onLoadInput.getText();
     }
 
     @Override
@@ -90,7 +126,7 @@ class EditorAutomaton implements IAutomatonDefinition
     @Override
     public String getDescription()
     {
-        return this.description;
+        return this.descriptionInput.getText();
     }
 
     @Override
@@ -101,30 +137,7 @@ class EditorAutomaton implements IAutomatonDefinition
 
     Node getConfigFrame()
     {
-        final ConfigFrame cf = new ConfigFrame("Automaton properties");
-
-        final int descriptionInputLines = 8;
-        final TextArea descriptionInput = new TextArea(this.description);
-        descriptionInput.setPrefRowCount(descriptionInputLines);
-        descriptionInput.setWrapText(true);
-        descriptionInput.textProperty().addListener((ChangeListener<String>) (observable, oldValue, newValue) -> {
-            this.setDescription(newValue);
-            this.graph.handleChange();
-        });
-        cf.addOption("Description", descriptionInput);
-
-        final ObservableList<String> options = FXCollections.observableArrayList("JavaScript", "python");
-        final ChoiceBox<String> scriptLanguageInput = new ChoiceBox<>(options);
-        scriptLanguageInput.setValue(
-            StringUtils.isBlank(this.scriptLanguage) || !options.contains(this.scriptLanguage) ? options.get(0) : this.scriptLanguage);
-        scriptLanguageInput.getSelectionModel().selectedIndexProperty()
-            .addListener((ChangeListener<Number>) (observable, oldValue, newValue) -> {
-                EditorAutomaton.this.scriptLanguage = scriptLanguageInput.getItems().get((Integer) newValue);
-                this.graph.handleChange();
-            });
-        cf.addOption("Script language", scriptLanguageInput);
-
-        return cf;
+        return this.configFrame;
     }
 
     @Override
@@ -152,9 +165,10 @@ class EditorAutomaton implements IAutomatonDefinition
 
         final JsonAutomatonDefinition def = new JsonAutomatonDefinition(src);
         def.load();
-        this.onLoad = def.getOnLoad();
+
         this.setDescription(def.getDescription());
         this.scriptLanguage = def.getScriptLanguage();
+        this.onLoadInput.setText(def.getOnLoad());
 
         final JSONObject designerConfig = rawJson.optJSONObject(JSON_KEY_DESIGNER);
 
@@ -177,7 +191,7 @@ class EditorAutomaton implements IAutomatonDefinition
 
     void setDescription(final String value)
     {
-        final String oldValue = this.description;
+        final String oldValue = this.descriptionInput.getText();
         if (StringUtils.isBlank(oldValue) && StringUtils.isNotBlank(value))
         {
             final double defaultXY = 10d;
@@ -188,8 +202,8 @@ class EditorAutomaton implements IAutomatonDefinition
         {
             this.descriptionNode.hide();
         }
-        this.description = value;
-        this.descriptionNode.setContent(this.description);
+        this.descriptionInput.setText(value);
+        this.descriptionNode.setContent(this.descriptionInput.getText());
     }
 
     private Map<String, AutomatonNode> createNodes(final JsonAutomatonDefinition def, final JSONObject nodesDesignerConfig)
