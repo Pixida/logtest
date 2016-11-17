@@ -17,9 +17,11 @@ import java.util.Optional;
 
 import org.apache.commons.lang3.Validate;
 
+import de.pixida.logtest.automatondefinitions.JsonAutomatonDefinition;
 import de.pixida.logtest.designer.Editor.Type;
 import de.pixida.logtest.designer.commons.ExceptionDialog;
 import de.pixida.logtest.designer.commons.Icons;
+import de.pixida.logtest.logreaders.GenericLogReader;
 import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
 import javafx.beans.binding.StringExpression;
@@ -38,9 +40,11 @@ import javafx.scene.control.MenuItem;
 import javafx.scene.control.SeparatorMenuItem;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
+import javafx.scene.input.Dragboard;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyCodeCombination;
 import javafx.scene.input.KeyCombination;
+import javafx.scene.input.TransferMode;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
@@ -104,6 +108,7 @@ class MainWindow implements IMainWindow
         this.primaryStage.getIcons().add(Icons.getIconImage(APP_ICON));
 
         final Scene rootScene = new Scene(this.root, 800, 600);
+        this.initDragAndDropForRootScene(rootScene);
         this.primaryStage.setScene(rootScene);
         this.primaryStage.setOnCloseRequest(event -> {
             if (!this.handleExitApplication())
@@ -112,6 +117,61 @@ class MainWindow implements IMainWindow
             }
         });
         this.primaryStage.show();
+
+    }
+
+    private void initDragAndDropForRootScene(final Scene scene)
+    {
+        scene.setOnDragOver(event -> {
+            final Dragboard db = event.getDragboard();
+            if (db.hasFiles())
+            {
+                event.acceptTransferModes(TransferMode.COPY);
+            }
+            else
+            {
+                event.consume();
+            }
+        });
+
+        scene.setOnDragDropped(event -> {
+            final Dragboard db = event.getDragboard();
+            boolean success = false;
+            if (db.hasFiles())
+            {
+                success = true;
+                for (final File file : db.getFiles())
+                {
+                    final Type guess = this.guessTypeOfFile(file);
+                    if (guess != null)
+                    {
+                        this.handleLoadDocument(guess, file);
+                    }
+                }
+            }
+            event.setDropCompleted(success);
+            event.consume();
+        });
+    }
+
+    private Type guessTypeOfFile(final File file)
+    {
+        try
+        {
+            new JsonAutomatonDefinition(file).load();
+            return Type.AUTOMATON;
+        }
+        catch (final RuntimeException re)
+        {
+            if (GenericLogReader.checkIfTheFileMightContainAValidConfiguration(file))
+            {
+                return Type.LOG_READER_CONFIG;
+            }
+            else
+            {
+                return null; // Unrecognized files are currently ignored
+            }
+        }
     }
 
     private Node createMenuBar()
@@ -190,7 +250,14 @@ class MainWindow implements IMainWindow
             if (type.supportsFilesProperty().get())
             {
                 final MenuItem openFile = new MenuItem(type.getName());
-                openFile.setOnAction(event -> this.handleLoadDocument(type));
+                openFile.setOnAction(event -> {
+                    final FileChooser fileChooser = this.createFileDialog(type, "Open");
+                    final File selectedFile = fileChooser.showOpenDialog(this.primaryStage);
+                    if (selectedFile != null)
+                    {
+                        this.handleLoadDocument(type, selectedFile);
+                    }
+                });
                 open.getItems().add(openFile);
             }
         }
@@ -209,40 +276,36 @@ class MainWindow implements IMainWindow
         menu.getItems().addAll(newDocument, open, this.menuItemSave, this.menuItemSaveAs, new SeparatorMenuItem(), exit);
     }
 
-    private void handleLoadDocument(final Type type)
+    private void handleLoadDocument(final Type type, final File file)
     {
-        final Editor newEditor = this.createNewEditorByTypeAndInitializeIt(type);
-        final FileChooser fileChooser = this.createFileDialog(newEditor, "Open");
-        final File selectedFile = fileChooser.showOpenDialog(this.primaryStage);
-        if (selectedFile != null)
+        Validate.notNull(file);
+        final Tab openedDocument = this.findTabThatIsAssignedToFile(file);
+        if (openedDocument != null)
         {
-            final Tab openedDocument = this.findTabThatIsAssignedToFile(selectedFile);
-            if (openedDocument != null)
+            this.tabPane.getSelectionModel().select(openedDocument);
+        }
+        else
+        {
+            final Editor newEditor = this.createNewEditorByTypeAndInitializeIt(type);
+            try
             {
-                this.tabPane.getSelectionModel().select(openedDocument);
+                newEditor.loadDocumentFromFileAndAssignToFile(file);
             }
-            else
+            catch (final RuntimeException re)
             {
-                try
-                {
-                    newEditor.loadDocumentFromFileAndAssignToFile(selectedFile);
-                }
-                catch (final RuntimeException re)
-                {
-                    ExceptionDialog.showFatalException("Failed to load " + newEditor.getTypeName() + ".",
-                        "An error occurred while loading the " + newEditor.getTypeName() + ".", re);
-                    return;
-                }
-                this.addEditorAsNewTab(newEditor);
+                ExceptionDialog.showFatalException("Failed to load " + type.getName() + ".",
+                    "An error occurred while loading the " + type.getName() + ".", re);
+                return;
             }
+            this.addEditorAsNewTab(newEditor);
         }
     }
 
-    private FileChooser createFileDialog(final Editor newEditor, final String actionName)
+    private FileChooser createFileDialog(final Type type, final String actionName)
     {
         final FileChooser fileChooser = new FileChooser();
-        fileChooser.setTitle(actionName + " " + newEditor.getTypeName());
-        newEditor.setExtensionFiltersForFiles(fileChooser.getExtensionFilters());
+        fileChooser.setTitle(actionName + " " + type.getName());
+        fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter(type.getFileDescription(), type.getFileMask()));
         final Editor currentEditor = this.getCurrentEditor();
         if (currentEditor != null && currentEditor.isDocumentAssignedToFile())
         {
@@ -260,8 +323,8 @@ class MainWindow implements IMainWindow
         }
         catch (final RuntimeException re)
         {
-            ExceptionDialog.showFatalException("Failed to create new " + newEditor.getTypeName() + ".",
-                "An error occurred while creating a new " + newEditor.getTypeName() + ".", re);
+            ExceptionDialog.showFatalException("Failed to create new " + type.getName() + ".",
+                "An error occurred while creating a new " + type.getName() + ".", re);
         }
         this.addEditorAsNewTab(newEditor);
     }
@@ -317,7 +380,7 @@ class MainWindow implements IMainWindow
 
     private boolean handleSaveDocumentAs()
     {
-        final FileChooser fileChooser = this.createFileDialog(this.getCurrentEditor(), "Save");
+        final FileChooser fileChooser = this.createFileDialog(this.getCurrentEditor().getType(), "Save");
         final File selectedFile = fileChooser.showSaveDialog(this.primaryStage);
         if (selectedFile == null)
         {

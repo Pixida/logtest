@@ -33,7 +33,6 @@ import org.json.JSONObject;
 import de.pixida.logtest.automatondefinitions.JsonAutomatonDefinition;
 import de.pixida.logtest.designer.Editor;
 import de.pixida.logtest.designer.IMainWindow;
-import de.pixida.logtest.designer.automaton.AutomatonEditor;
 import de.pixida.logtest.designer.commons.ExceptionDialog;
 import de.pixida.logtest.designer.commons.Icons;
 import de.pixida.logtest.designer.commons.SelectFileButton;
@@ -332,8 +331,8 @@ public class TestRunEditor extends Editor
         this.automatonFilePathProperty.bind(automatonFilePath.textProperty());
         HBox.setHgrow(automatonFilePath, Priority.ALWAYS);
         final Button selectAutomatonFilePathButton = SelectFileButton.createButtonWithFileSelection(automatonFilePath,
-            Editor.Type.AUTOMATON.getIconName(), "Select " + Editor.Type.AUTOMATON.getName(), AutomatonEditor.AUTOMATON_FILE_MASK,
-            AutomatonEditor.AUTOMATON_FILE_DESCRIPTION);
+            Editor.Type.AUTOMATON.getIconName(), "Select " + Editor.Type.AUTOMATON.getName(), Editor.Type.AUTOMATON.getFileMask(),
+            Editor.Type.AUTOMATON.getFileDescription());
         final HBox automatonFilePathConfig = new HBox(automatonFilePath, selectAutomatonFilePathButton);
         formItems.add(Triple.of("Automaton", automatonFilePathConfig, null));
 
@@ -354,9 +353,10 @@ public class TestRunEditor extends Editor
         final TextField logReaderConfigurationFilePath = new TextField();
         this.logReaderConfigurationFilePathProperty.bind(logReaderConfigurationFilePath.textProperty());
         HBox.setHgrow(logReaderConfigurationFilePath, Priority.ALWAYS);
-        final Button selectLogReaderConfigurationFilePathButton = SelectFileButton.createButtonWithFileSelection(logReaderConfigurationFilePath,
+        final Button selectLogReaderConfigurationFilePathButton = SelectFileButton.createButtonWithFileSelection(
+            logReaderConfigurationFilePath,
             Editor.Type.LOG_READER_CONFIG.getIconName(), "Select " + Editor.Type.LOG_READER_CONFIG.getName(),
-            LogReaderEditor.LOG_READER_FILE_MASK, LogReaderEditor.LOG_READER_FILE_DESCRIPTION);
+            Editor.Type.LOG_READER_CONFIG.getFileMask(), Editor.Type.LOG_READER_CONFIG.getFileDescription());
         final HBox logReaderConfigurationFilePathConfig = new HBox(logReaderConfigurationFilePath,
             selectLogReaderConfigurationFilePathButton);
         formItems.add(Triple.of("Log Reader Configuration", logReaderConfigurationFilePathConfig, null));

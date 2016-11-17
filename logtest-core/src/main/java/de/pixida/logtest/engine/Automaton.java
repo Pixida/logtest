@@ -908,7 +908,7 @@ public class Automaton
     private void initScriptEngine()
     {
         final ScriptEngineManager manager = new ScriptEngineManager();
-        final String language = StringUtils.defaultIfBlank(this.scriptLanguage, this.DEFAULT_SCRIPTING_LANGUAGE);
+        final String language = StringUtils.defaultIfBlank(this.scriptLanguage, DEFAULT_SCRIPTING_LANGUAGE);
         this.scriptingEngine = manager.getEngineByName(language);
         if (this.scriptingEngine == null)
         {

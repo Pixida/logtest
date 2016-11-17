@@ -74,9 +74,6 @@ public class LogReaderEditor extends Editor
 
     public static final String LOG_FILE_ICON_NAME = "page_white_text";
 
-    public static final String LOG_READER_FILE_MASK = "*.json";
-    public static final String LOG_READER_FILE_DESCRIPTION = "Log Reader Configuration (" + LOG_READER_FILE_MASK + ")";
-
     private GenericLogReader logReader;
     private TableView<LogEntryTableRow> parsedLogEntries = new TableView<>();
     private final ObservableList<LogEntryTableRow> parsedLogEntryItems = FXCollections
@@ -146,8 +143,6 @@ public class LogReaderEditor extends Editor
         this.parsedLogEntries.getColumns().add(timeCol);
         this.parsedLogEntries.getColumns().add(channelCol);
         this.parsedLogEntries.getColumns().add(payloadCol);
-
-        this.setFileMaskAndDescription(LOG_READER_FILE_MASK, LOG_READER_FILE_DESCRIPTION);
     }
 
     @Override
@@ -206,7 +201,8 @@ public class LogReaderEditor extends Editor
         inputTypeText.setSelected(true);
         final TextField pathInput = new TextField();
         HBox.setHgrow(pathInput, Priority.ALWAYS);
-        final Button selectLogFileButton = SelectFileButton.createButtonWithFileSelection(pathInput, LOG_FILE_ICON_NAME, "Select log file", null, null);
+        final Button selectLogFileButton = SelectFileButton.createButtonWithFileSelection(pathInput, LOG_FILE_ICON_NAME, "Select log file",
+            null, null);
         final Text pathInputLabel = new Text("Log file path: ");
         final HBox fileInputConfig = new HBox();
         fileInputConfig.setAlignment(Pos.CENTER_LEFT);

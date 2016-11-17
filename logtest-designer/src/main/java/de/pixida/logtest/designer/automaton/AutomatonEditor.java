@@ -22,9 +22,6 @@ import javafx.scene.control.SplitPane;
 
 public class AutomatonEditor extends Editor implements IAutomatonEditor
 {
-    public static final String AUTOMATON_FILE_MASK = "*.json";
-    public static final String AUTOMATON_FILE_DESCRIPTION = "JSON automaton definition (" + AUTOMATON_FILE_MASK + ")";
-
     private EditorAutomaton automaton;
 
     private Graph graph;
@@ -35,7 +32,6 @@ public class AutomatonEditor extends Editor implements IAutomatonEditor
     public AutomatonEditor(final IMainWindow mainWindow)
     {
         super(Editor.Type.AUTOMATON, mainWindow);
-        this.setFileMaskAndDescription(AUTOMATON_FILE_MASK, AUTOMATON_FILE_DESCRIPTION);
     }
 
     @Override

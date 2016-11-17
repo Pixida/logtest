@@ -20,30 +20,39 @@ import javafx.beans.binding.Bindings;
 import javafx.beans.binding.StringExpression;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleStringProperty;
-import javafx.collections.ObservableList;
 import javafx.scene.layout.BorderPane;
-import javafx.stage.FileChooser;
-import javafx.stage.FileChooser.ExtensionFilter;
 
 public abstract class Editor extends BorderPane
 {
     public enum Type
     {
-        AUTOMATON("Automaton", parentWindow -> new AutomatonEditor(parentWindow), "palette", true),
-        LOG_READER_CONFIG("Log Reader", parentWindow -> new LogReaderEditor(parentWindow), "script", true),
-        TEST_RUN("Test Run", parentWindow -> new TestRunEditor(parentWindow), "lightning", false);
+        AUTOMATON("Automaton", parentWindow -> new AutomatonEditor(parentWindow), "palette", "*.json", "Automaton Definition"),
+        LOG_READER_CONFIG("Log Reader", parentWindow -> new LogReaderEditor(parentWindow), "script", "*.json", "Log Reader Configuration"),
+        TEST_RUN("Test Run", parentWindow -> new TestRunEditor(parentWindow), "lightning");
 
         private String name;
         private String iconName;
         private Function<IMainWindow, Editor> factory;
         private final SimpleBooleanProperty supportsFiles = new SimpleBooleanProperty();
+        private String fileMask;
+        private String fileDescription;
 
-        private Type(final String aName, final Function<IMainWindow, Editor> aFactory, final String aIconName, final boolean aSupportsFiles)
+        private Type(final String aName, final Function<IMainWindow, Editor> aFactory, final String aIconName, final String aFileMask, final String aFileDescription)
+        {
+            this(aName, aFactory, aIconName);
+            Validate.notNull(aFileMask);
+            Validate.notNull(aFileDescription);
+            this.fileMask = aFileMask;
+            this.fileDescription = aFileDescription + " (" + this.fileMask + ")";
+            this.supportsFiles.set(true);
+        }
+
+        private Type(final String aName, final Function<IMainWindow, Editor> aFactory, final String aIconName)
         {
             this.name = aName;
             this.factory = aFactory;
             this.iconName = aIconName;
-            this.supportsFiles.set(aSupportsFiles);
+            this.supportsFiles.set(false);
         }
 
         public String getName()
@@ -65,6 +74,16 @@ public abstract class Editor extends BorderPane
         {
             return this.factory.apply(value);
         }
+
+        public String getFileMask()
+        {
+            return this.fileMask;
+        }
+
+        public String getFileDescription()
+        {
+            return this.fileDescription;
+        }
     }
 
     private static int newDocumentRunningIndex = 1;
@@ -77,8 +96,6 @@ public abstract class Editor extends BorderPane
     private final SimpleStringProperty documentNameShort = new SimpleStringProperty();
     private final SimpleStringProperty changedMarkerText = new SimpleStringProperty("");
     private boolean changed;
-    private String fileDescription;
-    private String fileMask;
     private File file;
 
     public Editor(final Type aType, final IMainWindow aMainWindow)
@@ -108,12 +125,6 @@ public abstract class Editor extends BorderPane
         return this.type.supportsFilesProperty();
     }
 
-    void setExtensionFiltersForFiles(final ObservableList<ExtensionFilter> extensionFilters)
-    {
-        extensionFilters.clear(); // To be clean...
-        extensionFilters.add(new FileChooser.ExtensionFilter(this.fileDescription, this.fileMask));
-    }
-
     boolean hasUnsavedChanges()
     {
         return this.changed;
@@ -141,21 +152,10 @@ public abstract class Editor extends BorderPane
         return this.file.equals(value);
     }
 
-    protected void setFileMaskAndDescription(final String aFileMask, final String aFileDescription)
-    {
-        this.fileMask = aFileMask;
-        this.fileDescription = aFileDescription;
-    }
-
     protected void setDocumentName(final String longName, final String shortName)
     {
         this.documentNameLong.set(longName);
         this.documentNameShort.set(shortName);
-    }
-
-    protected String getTypeName()
-    {
-        return this.type.getName();
     }
 
     public String getIconName()
@@ -202,5 +202,15 @@ public abstract class Editor extends BorderPane
         final String nameForUnassingedDocument = String.format("New %s [%d]", this.type.getName(), newDocumentRunningIndex++);
         this.setDocumentName(this.file != null ? this.file.getPath() : nameForUnassingedDocument,
             this.file != null ? FilenameUtils.removeExtension(FilenameUtils.getName(this.file.getName())) : nameForUnassingedDocument);
+    }
+
+    public String getTypeName()
+    {
+        return this.type.getName();
+    }
+
+    public Type getType()
+    {
+        return this.type;
     }
 }

@@ -25,6 +25,7 @@ import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 import java.util.stream.Collectors;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
@@ -200,6 +201,20 @@ public class GenericLogReader implements ILogReader
         {
             this.closeInputStream();
             this.inputStreamClosed = true;
+        }
+    }
+
+    public static boolean checkIfTheFileMightContainAValidConfiguration(final File file)
+    {
+        try
+        {
+            return new JSONObject(FileUtils.readFileToString(file, StandardCharsets.UTF_8))
+                .has(GenericLogReaderJsonKey.HEADLINE_PATTERN.getKey());
+        }
+        catch (final IOException ioe)
+        {
+            LOG.debug("File seems not to be a log reader configuration '{}'", file.getAbsolutePath());
+            return false;
         }
     }
 
