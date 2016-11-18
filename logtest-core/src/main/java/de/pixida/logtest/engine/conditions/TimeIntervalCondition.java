@@ -131,7 +131,8 @@ public class TimeIntervalCondition extends BaseCondition
     }
 
     @Override
-    public boolean evaluate(final IEventDescription eventDescription, final TimingInfo timingInfo)
+    public boolean evaluate(final IEventDescription eventDescription, final TimingInfo timingInfo,
+        final IScriptEnvironment scriptEnvironment)
     {
         final long timeMs = eventDescription.getLogEntryTime() - this.timeGetter.apply(timingInfo);
         final boolean minMatches = this.checkElapsedTimeMsMatchesDuration(this.timeInterval.getMin(), true, timeMs);

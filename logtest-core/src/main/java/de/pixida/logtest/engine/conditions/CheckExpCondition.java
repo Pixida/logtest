@@ -39,7 +39,8 @@ public class CheckExpCondition extends BaseCondition
     }
 
     @Override
-    public boolean evaluate(final IEventDescription eventDescription, final TimingInfo timingInfo)
+    public boolean evaluate(final IEventDescription eventDescription, final TimingInfo timingInfo,
+        final IScriptEnvironment scriptEnvironment)
     {
         final boolean result = this.script.runAndGetBooleanResult();
         LOG.debug("Check expression evaluated to '{}'", result);

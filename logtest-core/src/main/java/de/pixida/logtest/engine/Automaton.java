@@ -202,9 +202,10 @@ public class Automaton
             }
             if (group < 0 || group >= this.regExpConditionMatchingGroups.size())
             {
-                LOG.error("Invalid index '{}' for accessing matches of regular expression condition '{}'",
+                LOG.debug("Returning null for invalid index '{}' of matches of regular expression condition: '{}'",
                     group, this.regExpConditionMatchingGroups);
-                throw new ExecutionException("Cannot get matching group as index is out of bounds: " + group);
+                // Throw no exception as by returning null, the script can check if the regular expression really matched.
+                return null;
             }
             return this.regExpConditionMatchingGroups.get(group);
         }
@@ -793,7 +794,7 @@ public class Automaton
         final List<AutomatonEdge> matchingEdges = new ArrayList<>(this.currentNode.getOutgoingEdges().size());
         for (final AutomatonEdge edge : this.currentNode.getOutgoingEdges())
         {
-            if (edge.edgeMatchesEvent(new EventForConditionEvaluation(), this.timingInfo))
+            if (edge.edgeMatchesEvent(new EventForConditionEvaluation(), this.timingInfo, this.scriptEnvironment))
             {
                 matchingEdges.add(edge);
                 LOG.trace("Found matching edge: '{}'", edge);

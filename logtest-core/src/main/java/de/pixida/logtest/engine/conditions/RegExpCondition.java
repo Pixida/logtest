@@ -54,14 +54,15 @@ public class RegExpCondition extends BaseCondition
     }
 
     @Override
-    public boolean evaluate(final IEventDescription eventDescription, final TimingInfo timingInfo)
+    public boolean evaluate(final IEventDescription eventDescription, final TimingInfo timingInfo,
+        final IScriptEnvironment scriptEnvironment)
     {
         final Matcher matcher = this.pattern.matcher(eventDescription.getLogEntryPayload());
         if (matcher.find())
         {
             if (this.matchingGroups == null)
             {
-                this.matchingGroups = new ArrayList<>(matcher.groupCount());
+                this.matchingGroups = new ArrayList<>(matcher.groupCount() + 1); // +1 as group 0 not included into this count
             }
             else
             {
@@ -72,6 +73,10 @@ public class RegExpCondition extends BaseCondition
                 this.matchingGroups.add(matcher.group(i));
             }
             LOG.debug("Pattern '{}' matched with groups '{}'", this.regExp, this.matchingGroups);
+
+            // Push matching groups into script environment so that they can be used in conditions evaluated later
+            scriptEnvironment.setRegExpConditionMatchingGroups(this.matchingGroups);
+
             return true;
         }
         else
@@ -96,7 +101,7 @@ public class RegExpCondition extends BaseCondition
     {
         final boolean weHadAMatch = this.matchingGroups != null && this.matchingGroups.size() > 0;
         final List<String> matchings = weHadAMatch ? this.matchingGroups : null;
-        LOG.debug("Setting current matching group for script environment: {}", matchings);
+        LOG.debug("Setting current matching group for script environment before on walk: {}", matchings);
         scriptEnvironment.setRegExpConditionMatchingGroups(matchings);
     }
 

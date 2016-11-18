@@ -112,8 +112,8 @@ class AutomatonEdge
         // Create and initialize conditions
         this.conditions.add(new AlwaysTriggeringCondition());
         this.conditions.add(new EofCondition());
-        this.conditions.add(new CheckExpCondition());
         this.conditions.add(new RegExpCondition());
+        this.conditions.add(new CheckExpCondition()); // Check exp after reg exp so the results can be accessed
         this.conditions.add(new TimeIntervalCondition(edgeDef -> edgeDef.getTimeIntervalSinceLastMicrotransition(),
             timingInfo -> timingInfo.getTimeOfLastMicrotransition()));
         this.conditions.add(new TimeIntervalCondition(edgeDef -> edgeDef.getTimeIntervalSinceLastTransition(),
@@ -140,7 +140,8 @@ class AutomatonEdge
         return this.activeConditions.size() > 0;
     }
 
-    boolean edgeMatchesEvent(final IEventDescription eventDescription, final TimingInfo timingInfo)
+    boolean edgeMatchesEvent(final IEventDescription eventDescription, final TimingInfo timingInfo,
+        final IScriptEnvironment scriptEnvironment)
     {
         LOG.trace("Checking if edge '{}' matches", this);
         boolean edgeMatches = false;
@@ -168,7 +169,8 @@ class AutomatonEdge
             {
                 final Stream<ICondition> applicableConditions = this.activeConditions.stream()
                     .filter(condition -> condition.isApplicable(eventDescription));
-                numMatchingConditions = applicableConditions.filter(condition -> condition.evaluate(eventDescription, timingInfo)).count();
+                numMatchingConditions = applicableConditions
+                    .filter(condition -> condition.evaluate(eventDescription, timingInfo, scriptEnvironment)).count();
                 if (currentRequiredConditions == RequiredConditions.ALL)
                 {
                     edgeMatches = numMatchingConditions == numApplicableConditions;

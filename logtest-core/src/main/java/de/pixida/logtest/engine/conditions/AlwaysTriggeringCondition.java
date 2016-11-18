@@ -32,7 +32,8 @@ public class AlwaysTriggeringCondition extends BaseCondition
     }
 
     @Override
-    public boolean evaluate(final IEventDescription eventDescription, final TimingInfo timingInfo)
+    public boolean evaluate(final IEventDescription eventDescription, final TimingInfo timingInfo,
+        final IScriptEnvironment scriptEnvironment)
     {
         // This condition always triggers
         LOG.trace("Condition always matches");

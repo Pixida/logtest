@@ -687,7 +687,7 @@ public class AutomatonTest
         final TestAutomaton ta = new TestAutomaton();
         final GenericNode initial = ta.createNode().withType(INodeDefinition.Type.INITIAL)
             .withOnEnter("if (engine.getRegExpConditionMatchingGroups(0) != null) engine.reject('0')")
-            .withOnLeave("if (engine.getRegExpConditionMatchingGroups(0) != null) engine.reject('1')").get();
+            .withOnLeave("if (engine.getRegExpConditionMatchingGroups(0) == null) engine.reject('1')").get();
         final GenericNode success = ta.createNode().withType(INodeDefinition.Type.SUCCESS)
             .withOnEnter("if (engine.getRegExpConditionMatchingGroups(0) != null) engine.reject('2')")
             .withOnLeave("if (engine.getRegExpConditionMatchingGroups(0) != null) engine.reject('3')").get();
@@ -703,17 +703,36 @@ public class AutomatonTest
         Assert.assertNull(a.getErrorReason());
     }
 
-    @Test(expected = ExecutionException.class)
-    public void testObtainingMatchingRegExpOfEdgeConditionThrowsExceptionIfGroupIndexIsInvalid()
+    @Test
+    public void testRegExpMatchingsCanBeUsedInCheckExpressions()
     {
         final TestAutomaton ta = new TestAutomaton();
         final GenericNode initial = ta.createNode().withType(INodeDefinition.Type.INITIAL).get();
         final GenericNode success = ta.createNode().withType(INodeDefinition.Type.SUCCESS).get();
-        ta.createEdge(initial, success).withRegExp("HE(L)LO").withOnWalk("engine.getRegExpConditionMatchingGroups(2);");
+        ta.createEdge(initial, success).withRegExp("HE(L)LO").withCheckExp("engine.getRegExpConditionMatchingGroups(1) == 'L'");
 
         final Automaton a = this.createAndCheckAutomaton(ta);
 
         a.proceedWithLogEntry(new GenericLogEntry(1, 1, "HELLO WORLD!"));
+        Assert.assertFalse(a.canProceed());
+        Assert.assertTrue(a.succeeded());
+        Assert.assertNull(a.getErrorReason());
+    }
+
+    @Test
+    public void testObtainingMatchingRegExpOfEdgeConditionReturnsNullIfGroupIndexIsInvalid()
+    {
+        final TestAutomaton ta = new TestAutomaton();
+        final GenericNode initial = ta.createNode().withType(INodeDefinition.Type.INITIAL).get();
+        final GenericNode success = ta.createNode().withType(INodeDefinition.Type.SUCCESS).get();
+        ta.createEdge(initial, success).withRegExp("HE(L)LO").withCheckExp("engine.getRegExpConditionMatchingGroups(2) == null");
+
+        final Automaton a = this.createAndCheckAutomaton(ta);
+
+        a.proceedWithLogEntry(new GenericLogEntry(1, 1, "HELLO WORLD!"));
+        Assert.assertFalse(a.canProceed());
+        Assert.assertTrue(a.succeeded());
+        Assert.assertNull(a.getErrorReason());
     }
 
     @Test

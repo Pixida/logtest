@@ -37,7 +37,8 @@ public class EofCondition extends BaseCondition
     }
 
     @Override
-    public boolean evaluate(final IEventDescription eventDescription, final TimingInfo timingInfo)
+    public boolean evaluate(final IEventDescription eventDescription, final TimingInfo timingInfo,
+        final IScriptEnvironment scriptEnvironment)
     {
         // This condition always triggers on EOF events, if set to active
         if (this.isOn)

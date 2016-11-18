@@ -49,9 +49,11 @@ public interface ICondition
      *            Event
      * @param timingInfo
      *            Current timing information
+     * @param scriptEnvironment
+     *            Current script environment
      * @return True if the condition matches
      */
-    boolean evaluate(IEventDescription eventDescription, TimingInfo timingInfo);
+    boolean evaluate(IEventDescription eventDescription, TimingInfo timingInfo, IScriptEnvironment scriptEnvironment);
 
     /**
      * Initialize script environment before 'onWalk' handler is called. Note that the condition must neither be active, applicable nor
