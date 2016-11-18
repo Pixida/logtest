@@ -59,6 +59,12 @@ public class TutorialAutomatonsTest
         Assert.assertTrue(this.getExecutionResultOfAutomatonOnTutorialLog("light-goes-off-when-door-is-closed"));
     }
 
+    @Test
+    public void testTemperatureDecreasesWhenDoorIsClosed()
+    {
+        Assert.assertTrue(this.getExecutionResultOfAutomatonOnTutorialLog("temperature-decreases-when-door-is-closed"));
+    }
+
     private boolean getExecutionResultOfAutomatonOnTutorialLog(final String automatonName)
     {
         final String tutorialFolder = "/tutorial";

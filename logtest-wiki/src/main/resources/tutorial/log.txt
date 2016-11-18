@@ -1,25 +1,25 @@
 5 System startup
-20 T=25캜
+20 T=25째C
 1000 System startup completed
-5000 Temperature set to: 7캜
-60000 T=24캜
-120000 T=18캜
-180000 T=14캜
-240000 T=7캜
-360000 T=7캜
+5000 Temperature set to: 7째C
+60000 T=24째C
+120000 T=18째C
+180000 T=14째C
+240000 T=7째C
+360000 T=7째C
 360000 Door opened
 360500 Light state: on
 365000 Door closed
 365500 Light state: off
-420000 T=8캜
-480000 T=7캜
+420000 T=8째C
+480000 T=7째C
 485000 Door opened
 485500 Light state: on
-500000 Start alert: T=14캜
-540000 T=19캜
+500000 Start alert: T=14째C
+540000 T=19째C
 545000 Door closed
 545500 Light state: off
-600000 T=18캜
-660000 T=14캜
-700000 Stop alert at T=7캜
-720000 T=7캜
+600000 T=18째C
+660000 T=14째C
+700000 Stop alert at T=7째C
+720000 T=7째C

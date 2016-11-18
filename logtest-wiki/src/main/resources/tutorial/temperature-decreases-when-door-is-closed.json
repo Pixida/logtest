@@ -1,0 +1,210 @@
+{
+    "nodes": [
+        {
+            "name": "Door open",
+            "description": "Succeeding state because when the\ndoor is left open at the end of the test,\nthe assumption can still be true.",
+            "id": "1",
+            "outgoingEdges": [{
+                "destination": "3",
+                "description": "Resynchronize temperature",
+                "id": "6",
+                "regExp": "^Door closed$",
+                "requiredConditions": "ALL"
+            }],
+            "type": "SUCCESS"
+        },
+        {
+            "name": "Wait for temperature report",
+            "id": "2",
+            "outgoingEdges": [
+                {
+                    "destination": "1",
+                    "id": "5",
+                    "regExp": "^Door opened$",
+                    "requiredConditions": "ALL"
+                },
+                {
+                    "name": "Check Temperature",
+                    "destination": "2",
+                    "description": "Check if temperature decreased",
+                    "onWalk": "T = parseInt(engine.getRegExpConditionMatchingGroups(1))",
+                    "id": "7",
+                    "regExp": "T=([0-9]+)°C",
+                    "checkExp": "engine.getRegExpConditionMatchingGroups(1) != null\n&& T >= parseInt(engine.getRegExpConditionMatchingGroups(1))",
+                    "requiredConditions": "ALL"
+                },
+                {
+                    "destination": "4",
+                    "description": "Check if temperature increased",
+                    "onWalk": "// Log it\nengine.info(\"Temperature increased from \" + T\n+ \" to \" + parseInt(engine.getRegExpConditionMatchingGroups(1))\n+ \" in log line \" + parseInt(engine.getLogEntryLineNumber()));",
+                    "id": "9",
+                    "regExp": "T=([0-9]+)°C",
+                    "checkExp": "engine.getRegExpConditionMatchingGroups(1) != null\n&& T < parseInt(engine.getRegExpConditionMatchingGroups(1))",
+                    "requiredConditions": "ALL"
+                }
+            ],
+            "type": "SUCCESS"
+        },
+        {
+            "name": "Start",
+            "id": "3",
+            "outgoingEdges": [{
+                "destination": "2",
+                "onWalk": "T = parseInt(engine.getRegExpConditionMatchingGroups(1))",
+                "id": "8",
+                "regExp": "T=([0-9]+)°C",
+                "requiredConditions": "ALL"
+            }],
+            "type": "INITIAL"
+        },
+        {
+            "name": "Temperature increased",
+            "id": "4",
+            "type": "FAILURE"
+        }
+    ],
+    "onLoad": "",
+    "description": "Test if the temperature inside the fridge is decreasing when the door is closed.",
+    "designer": {
+        "nodes": {
+            "1": {
+                "rect": {
+                    "w": 74.7890625,
+                    "x": 164,
+                    "h": 32.26171875,
+                    "y": 228
+                },
+                "description": {
+                    "w": 176.4150390625,
+                    "x": 103,
+                    "h": 42.90234375,
+                    "y": 272
+                }
+            },
+            "2": {"rect": {
+                "w": 128.890625,
+                "x": 392,
+                "h": 32.26171875,
+                "y": 187
+            }},
+            "3": {"rect": {
+                "w": 68.3486328125,
+                "x": 28,
+                "h": 32.26171875,
+                "y": 84
+            }},
+            "4": {"rect": {
+                "w": 107.103515625,
+                "x": 614,
+                "h": 32.26171875,
+                "y": 410
+            }}
+        },
+        "edges": {
+            "5": {
+                "x": 320.115966796875,
+                "regExpPropertyNode": {
+                    "w": 76.9228515625,
+                    "x": 305.115966796875,
+                    "h": 32.26171875,
+                    "y": 251.630859375
+                },
+                "y": 238.630859375
+            },
+            "6": {
+                "descriptionPropertyNode": {
+                    "w": 126.7958984375,
+                    "x": 3,
+                    "h": 16.30078125,
+                    "y": 199.130859375
+                },
+                "x": 139,
+                "regExpPropertyNode": {
+                    "w": 71.439453125,
+                    "x": 28,
+                    "h": 32.26171875,
+                    "y": 162.130859375
+                },
+                "y": 191.130859375
+            },
+            "7": {
+                "onWalkPropertyNode": {
+                    "w": 273.0654296875,
+                    "x": 278.4453125,
+                    "h": 32.26171875,
+                    "y": 506.130859375
+                },
+                "descriptionPropertyNode": {
+                    "w": 145.990234375,
+                    "x": 242.4453125,
+                    "h": 16.30078125,
+                    "y": 428.130859375
+                },
+                "x": 396.4453125,
+                "regExpPropertyNode": {
+                    "w": 61.732421875,
+                    "x": 230.4453125,
+                    "h": 32.26171875,
+                    "y": 388.130859375
+                },
+                "y": 381.130859375,
+                "checkExpPropertyNode": {
+                    "w": 298.6513671875,
+                    "x": 242.4453125,
+                    "h": 45.5625,
+                    "y": 452.130859375
+                }
+            },
+            "8": {
+                "onWalkPropertyNode": {
+                    "w": 273.0654296875,
+                    "x": 212.17431640625,
+                    "h": 32.26171875,
+                    "y": 111.49939344207075
+                },
+                "x": 201.17431640625,
+                "regExpPropertyNode": {
+                    "w": 61.732421875,
+                    "x": 146.17431640625,
+                    "h": 32.26171875,
+                    "y": 104.49939344207075
+                },
+                "y": 185.49939344207075
+            },
+            "9": {
+                "onWalkPropertyNode": {
+                    "w": 299.974609375,
+                    "x": 552.739501953125,
+                    "h": 72.1640625,
+                    "y": 276.130859375
+                },
+                "descriptionPropertyNode": {
+                    "w": 142.953125,
+                    "x": 547.739501953125,
+                    "h": 16.30078125,
+                    "y": 199
+                },
+                "x": 494.739501953125,
+                "regExpPropertyNode": {
+                    "w": 61.732421875,
+                    "x": 533.739501953125,
+                    "h": 32.26171875,
+                    "y": 159.130859375
+                },
+                "y": 319.130859375,
+                "checkExpPropertyNode": {
+                    "w": 291.810546875,
+                    "x": 546.739501953125,
+                    "h": 45.5625,
+                    "y": 223
+                }
+            }
+        },
+        "description": {
+            "w": 351.0146484375,
+            "x": 10,
+            "h": 32.26171875,
+            "y": 10
+        }
+    }
+}
