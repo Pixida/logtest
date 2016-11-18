@@ -211,9 +211,9 @@ public class GenericLogReader implements ILogReader
             return new JSONObject(FileUtils.readFileToString(file, StandardCharsets.UTF_8))
                 .has(GenericLogReaderJsonKey.HEADLINE_PATTERN.getKey());
         }
-        catch (final IOException ioe)
+        catch (final IOException | JSONException e)
         {
-            LOG.debug("File seems not to be a log reader configuration '{}'", file.getAbsolutePath());
+            LOG.debug("File seems not to be a log reader configuration '{}'", file.getAbsolutePath(), e);
             return false;
         }
     }

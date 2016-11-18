@@ -12,6 +12,7 @@ import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -343,16 +344,10 @@ public class JsonAutomatonDefinition implements IAutomatonDefinition
         {
             return null;
         }
-        final E[] enumConstants = enumClz.getEnumConstants();
-        assert enumConstants != null; // E is an enum, guaranteed by declaration
-        for (final E enumConstant : enumConstants)
-        {
-            if (value.toLowerCase(Locale.US).equals(enumConstant.toString().toLowerCase(Locale.US)))
-            {
-                return enumConstant;
-            }
-        }
-        throw new AutomatonLoadingException("Invalid value for required conditions: " + value);
+        final String valueLc = value.toLowerCase(Locale.US);
+        return Arrays.stream(enumClz.getEnumConstants())
+            .filter(enumConstant -> valueLc.equals(enumConstant.toString().toLowerCase(Locale.US)))
+            .findFirst().orElseThrow(() -> new AutomatonLoadingException("Invalid value for required conditions: " + value));
     }
 
     // Just for logging output / no business use

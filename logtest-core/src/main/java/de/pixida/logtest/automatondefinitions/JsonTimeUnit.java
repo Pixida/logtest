@@ -41,25 +41,18 @@ public enum JsonTimeUnit
         return this.timeUnit;
     }
 
-    static public String convertTimeUnitToString(final TimeUnit value)
+    public static String convertTimeUnitToString(final TimeUnit value)
     {
         // This is O(# defined constants in this enumeration); should be acceptable for now.
-        for (final JsonTimeUnit v : values())
-        {
-            if (v.getTimeUnit() == value)
-            {
-                return v.getName();
-            }
-        }
-        return null;
+        return Arrays.stream(values()).filter(v -> v.getTimeUnit() == value).map(v -> v.getName()).findFirst().orElse(null);
     }
 
-    static public List<String> getListOfPossibleNames()
+    public static List<String> getListOfPossibleNames()
     {
         return Arrays.stream(values()).map(entry -> entry.getName()).collect(Collectors.toList());
     }
 
-    static public TimeUnit indexToTimeUnit(final int value)
+    public static TimeUnit indexToTimeUnit(final int value)
     {
         return values()[value].getTimeUnit();
     }

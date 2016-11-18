@@ -147,6 +147,10 @@ class MainWindow implements IMainWindow
                     {
                         this.handleLoadDocument(guess, file);
                     }
+                    else
+                    {
+                        ; // Unrecognized files are currently ignored
+                    }
                 }
             }
             event.setDropCompleted(success);
@@ -169,7 +173,7 @@ class MainWindow implements IMainWindow
             }
             else
             {
-                return null; // Unrecognized files are currently ignored
+                return null;
             }
         }
     }

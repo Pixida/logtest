@@ -8,7 +8,6 @@
 package de.pixida.logtest.automatondefinitions;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.Validate;
@@ -38,11 +37,9 @@ public abstract class AutomatonDefinitionToJsonConverter
             final JSONObject node = convertNode(definedNode);
 
             final JSONArray outgoingEdges = new JSONArray();
-            for (final IEdgeDefinition definedOutgoingEdge : definedEdges.stream().filter(edge -> edge.getSource() == definedNode)
-                .collect(Collectors.toList()))
-            {
-                outgoingEdges.put(convertEdge(definedOutgoingEdge));
-            }
+            definedEdges.stream().filter(edge -> edge.getSource() == definedNode)
+                .map(definedOutgoingEdge -> convertEdge(definedOutgoingEdge))
+                .forEach(convertedDefinedOutgoingEdge -> outgoingEdges.put(convertedDefinedOutgoingEdge));
             if (outgoingEdges.length() > 0)
             {
                 node.put(JsonKey.NODE_OUTGOING_EDGES.getKey(), outgoingEdges);
