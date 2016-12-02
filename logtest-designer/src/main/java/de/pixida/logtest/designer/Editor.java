@@ -170,6 +170,8 @@ public abstract class Editor extends BorderPane
 
     protected void setChanged(final boolean value)
     {
+        // TODO: After loading an automaton, this is always called with "true" argument
+        //        new RuntimeException().printStackTrace();
         if (value != this.changed) // Method might been called very often
         {
             this.changed = value;

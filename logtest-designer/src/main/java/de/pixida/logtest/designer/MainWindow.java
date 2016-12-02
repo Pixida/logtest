@@ -64,6 +64,7 @@ class MainWindow implements IMainWindow
 
     private MenuItem menuItemSave;
     private MenuItem menuItemSaveAs;
+    private File lastFolderForOpenOrSaveAsFileDialog;
 
     MainWindow(final Stage aPrimaryStage)
     {
@@ -259,6 +260,7 @@ class MainWindow implements IMainWindow
                     final File selectedFile = fileChooser.showOpenDialog(this.primaryStage);
                     if (selectedFile != null)
                     {
+                        this.applyFolderOfSelectedFileInOpenOrSaveAsFileDialog(selectedFile);
                         this.handleLoadDocument(type, selectedFile);
                     }
                 });
@@ -278,6 +280,16 @@ class MainWindow implements IMainWindow
         exit.setOnAction(event -> this.handleExitApplication());
 
         menu.getItems().addAll(newDocument, open, this.menuItemSave, this.menuItemSaveAs, new SeparatorMenuItem(), exit);
+    }
+
+    private void applyFolderOfSelectedFileInOpenOrSaveAsFileDialog(final File selectedFile)
+    {
+        Validate.notNull(selectedFile);
+        final File selectedFolder = selectedFile.getParentFile();
+        if (selectedFolder != null)
+        {
+            this.lastFolderForOpenOrSaveAsFileDialog = selectedFolder;
+        }
     }
 
     private void handleLoadDocument(final Type type, final File file)
@@ -314,6 +326,13 @@ class MainWindow implements IMainWindow
         if (currentEditor != null && currentEditor.isDocumentAssignedToFile())
         {
             fileChooser.setInitialDirectory(currentEditor.getDirectoryOfAssignedFile());
+        }
+        else
+        {
+            if (this.lastFolderForOpenOrSaveAsFileDialog != null)
+            {
+                fileChooser.setInitialDirectory(this.lastFolderForOpenOrSaveAsFileDialog);
+            }
         }
         return fileChooser;
     }
@@ -392,6 +411,8 @@ class MainWindow implements IMainWindow
         }
         else
         {
+            this.applyFolderOfSelectedFileInOpenOrSaveAsFileDialog(selectedFile);
+
             boolean overwriteIfPresent = true;
             final Tab openedDocument = this.findTabThatIsAssignedToFile(selectedFile);
             if (openedDocument != null)

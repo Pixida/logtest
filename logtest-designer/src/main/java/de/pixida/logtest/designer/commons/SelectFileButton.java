@@ -33,7 +33,7 @@ public abstract class SelectFileButton
                 fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter(fileMaskDescription, fileMask));
             }
             File initialDirectory = new File(inputFieldShowingPath.getText().trim());
-            if (initialDirectory == null || !initialDirectory.isDirectory())
+            if (!initialDirectory.isDirectory())
             {
                 initialDirectory = initialDirectory.getParentFile();
             }
